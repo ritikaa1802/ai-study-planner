@@ -1,8 +1,9 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { authController } from "@/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const { authController } = await import("@/server");
     const body = await req.json();
     const result = await authController.login({
       body,

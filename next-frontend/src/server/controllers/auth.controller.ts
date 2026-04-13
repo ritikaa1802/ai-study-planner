@@ -1,6 +1,6 @@
 import { prisma } from "../prisma";
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken";

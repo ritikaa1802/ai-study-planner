@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { dashboardController } from "@/server";
 import { requireUserId } from "../../_lib/auth";
