@@ -2,6 +2,7 @@ export type ServerContext = {
   params?: Record<string, string | undefined>;
   query?: Record<string, string | string[] | undefined>;
   body?: any;
+  headers?: Record<string, string>;
   userId?: number;
   file?: {
     filename: string;

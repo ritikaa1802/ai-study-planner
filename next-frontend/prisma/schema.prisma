@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model CalendarEvent {
+  id     Int    @id @default(autoincrement())
+  title  String
+  tag    String
+  date   String
+  time   String
+  day    Int
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], map: "CalendarEvent_userId_fkey")
+
+  @@index([userId], map: "CalendarEvent_userId_fkey")
+  @@map("calendarevent")
+}
+
+model CircleMessage {
+  id          Int         @id @default(autoincrement())
+  circleId    Int
+  senderId    Int
+  content     String
+  createdAt   DateTime    @default(now())
+  studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleMessage_circleId_fkey")
+  sender      User        @relation(fields: [senderId], references: [id], map: "CircleMessage_senderId_fkey")
+
+  @@index([circleId], map: "CircleMessage_circleId_fkey")
+  @@index([senderId], map: "CircleMessage_senderId_fkey")
+  @@map("circlemessage")
+}
+
+model CircleSchedule {
+  id          Int         @id @default(autoincrement())
+  circleId    Int
+  title       String
+  startTime   DateTime
+  endTime     DateTime
+  createdAt   DateTime    @default(now())
+  studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleSchedule_circleId_fkey")
+
+  @@index([circleId], map: "CircleSchedule_circleId_fkey")
+  @@map("circleschedule")
+}
+
+model DailyActivity {
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  count  Int      @default(0)
+  userId Int
+  user   User     @relation(fields: [userId], references: [id], map: "DailyActivity_userId_fkey")
+
+  @@unique([date, userId], map: "DailyActivity_date_userId_key")
+  @@index([userId], map: "DailyActivity_userId_fkey")
+  @@map("dailyactivity")
+}
+
+model Goal {
+  id            Int          @id @default(autoincrement())
+  title         String
+  type          String
+  progress      Int          @default(0)
+  userId        Int
+  createdAt     DateTime     @default(now())
+  studyCircleId Int?
+  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Goal_studyCircleId_fkey")
+  user          User         @relation(fields: [userId], references: [id], map: "Goal_userId_fkey")
+  tasks         Task[]
+
+  @@index([studyCircleId], map: "Goal_studyCircleId_fkey")
+  @@index([userId], map: "Goal_userId_fkey")
+  @@map("goal")
+}
+
+model Resource {
+  id            Int          @id @default(autoincrement())
+  title         String
+  url           String?
+  description   String?
+  uploadedAt    DateTime     @default(now())
+  uploaderId    Int
+  studyCircleId Int?
+  fileType      String?
+  fileUrl       String?
+  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Resource_studyCircleId_fkey")
+  uploader      User         @relation(fields: [uploaderId], references: [id], map: "Resource_uploaderId_fkey")
+
+  @@index([studyCircleId], map: "Resource_studyCircleId_fkey")
+  @@index([uploaderId], map: "Resource_uploaderId_fkey")
+  @@map("resource")
+}
+
+model SessionParticipant {
+  id           Int          @id @default(autoincrement())
+  sessionId    Int
+  userId       Int
+  joinedAt     DateTime     @default(now())
+  lastPing     DateTime     @default(now())
+  status       String       @default("ACTIVE")
+  studySession StudySession @relation(fields: [sessionId], references: [id], map: "SessionParticipant_sessionId_fkey")
+  user         User         @relation(fields: [userId], references: [id], map: "SessionParticipant_userId_fkey")
+
+  @@unique([sessionId, userId], map: "SessionParticipant_sessionId_userId_key")
+  @@index([userId], map: "SessionParticipant_userId_fkey")
+  @@map("sessionparticipant")
+}
+
+model StudyCircle {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  description           String?
+  inviteCode            String                  @unique(map: "StudyCircle_inviteCode_key")
+  createdAt             DateTime                @default(now())
+  circleMessages        CircleMessage[]
+  circleSchedules       CircleSchedule[]
+  goals                 Goal[]
+  resources             Resource[]
+  members               StudyCircleMembership[]
+  studySessions         StudySession[]
+
+  @@map("studycircle")
+}
+
+model StudyCircleMembership {
+  id            Int         @id @default(autoincrement())
+  joinedAt      DateTime    @default(now())
+  userId        Int
+  studyCircleId Int
+  studyCircle   StudyCircle @relation(fields: [studyCircleId], references: [id], map: "StudyCircleMembership_studyCircleId_fkey")
+  user          User        @relation(fields: [userId], references: [id], map: "StudyCircleMembership_userId_fkey")
+
+  @@unique([userId, studyCircleId], map: "StudyCircleMembership_userId_studyCircleId_key")
+  @@index([studyCircleId], map: "StudyCircleMembership_studyCircleId_fkey")
+  @@map("studycirclemembership")
+}
+
+model StudySession {
+  id           Int                  @id @default(autoincrement())
+  circleId     Int
+  startTime    DateTime             @default(now())
+  duration     Int                  @default(25)
+  status       String               @default("ACTIVE")
+  participants SessionParticipant[]
+  studyCircle  StudyCircle          @relation(fields: [circleId], references: [id], map: "StudySession_circleId_fkey")
+
+  @@index([circleId], map: "StudySession_circleId_fkey")
+  @@map("studysession")
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  title     String
+  completed Boolean  @default(false)
+  focusMinutes Int?
+  goalId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  goal      Goal     @relation(fields: [goalId], references: [id], map: "Task_goalId_fkey")
+  user      User     @relation(fields: [userId], references: [id], map: "Task_userId_fkey")
+
+  @@index([goalId], map: "Task_goalId_fkey")
+  @@index([userId], map: "Task_userId_fkey")
+  @@map("task")
+}
+
+model User {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  email                 String                  @unique(map: "User_email_key")
+  password              String
+  createdAt             DateTime                @default(now())
+  refreshToken          String?
+  role                  user_role               @default(USER)
+  passwordResetExpires  DateTime?
+  passwordResetToken    String?
+  avatar                String?
+  bio                   String?
+  notifs                Json?
+  calendarEvents        CalendarEvent[]
+  circleMessages        CircleMessage[]
+  dailyActivities       DailyActivity[]
+  goals                 Goal[]
+  resources             Resource[]
+  sessionParticipants   SessionParticipant[]
+  userStudySessions     UserStudySession[]
+  memberships           StudyCircleMembership[]
+  tasks                 Task[]
+
+  @@map("user")
+}
+
+model UserStudySession {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  subject  String
+  duration Int
+  date     DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], map: "UserStudySession_userId_fkey")
+
+  @@index([userId], map: "UserStudySession_userId_fkey")
+  @@index([date], map: "UserStudySession_date_idx")
+  @@map("studysession_log")
+}
+
+enum user_role {
+  USER
+  ADMIN
+}
