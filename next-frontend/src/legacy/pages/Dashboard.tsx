@@ -1,0 +1,126 @@
+import { useState, useEffect, useRef } from "react";
+import { Theme } from "../types";
+import { Card } from "../components/ui/Card";
+import { Heatmap } from "../components/dashboard/Heatmap";
+import { InsightCard } from "../components/dashboard/InsightCard";
+import { XPBar } from "../components/dashboard/XPBar";
+import { getGreeting, getSarcasticThought } from "../utils/helpers";
+import { ICONS } from "../utils/constants";
+import { useAuthContext } from "../context/AuthContext";
+
+function Ic({ d, size = 18, color = "currentColor", sw = 1.8 }: { d: string; size?: number; color?: string; sw?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  );
+}
+
+interface DashboardProps {
+  C: Theme;
+}
+
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "consistency", label: "Consistency" },
+  { id: "insights", label: "Insights" },
+];
+
+export function Dashboard({ C }: DashboardProps) {
+  const { user } = useAuthContext();
+  const [activeSection, setActiveSection] = useState("overview");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(`dash-${id}`);
+    if (el && scrollRef.current) {
+      scrollRef.current.scrollTo({ top: el.offsetTop - 56, behavior: "smooth" });
+    }
+    setActiveSection(id);
+  };
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      const sections = ["overview", "consistency", "insights"];
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const el = document.getElementById(`dash-${sections[i]}`);
+        if (el && container.scrollTop >= el.offsetTop - 80) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+    container.addEventListener("scroll", onScroll);
+    return () => container.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      {/* Sticky tab bar */}
+      <div style={{ flexShrink: 0, background: C.card, borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", alignItems: "center", gap: 4, zIndex: 10 }}>
+        {TABS.map((t) => (
+          <button key={t.id} onClick={() => scrollTo(t.id)}
+            style={{ padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: activeSection === t.id ? 700 : 400, color: activeSection === t.id ? C.accent : C.muted, borderBottom: activeSection === t.id ? `2px solid ${C.accent}` : "2px solid transparent", marginBottom: -1, transition: "all 0.15s", letterSpacing: "0.01em" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Scrollable content */}
+      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px", boxSizing: "border-box" }}>
+        {/* Greeting */}
+        <div style={{ marginBottom: 22 }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>{getGreeting()}, {user.name.split(" ")[0]}</h2>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: C.muted, fontStyle: "italic" }}>"{getSarcasticThought(user.streak)}"</p>
+        </div>
+
+        {/* Overview */}
+        <div id="dash-overview" style={{ marginBottom: 32 }}>
+          <XPBar C={C} />
+        </div>
+
+        {/* Consistency */}
+        <div id="dash-consistency" style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 3, height: 16, borderRadius: 999, background: C.accent }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Consistency</span>
+          </div>
+          <Card C={C}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: C.text }}>Consistency Tracker</h2>
+              <span style={{ background: "#e8c87a22", color: "#b08a30", border: "1px solid #e8c87a88", fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 20 }}>{new Date().getFullYear()}</span>
+            </div>
+            <Heatmap C={C} />
+            <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                <Ic d={ICONS.fire} size={16} color={C.orange} />
+                <strong style={{ color: C.text }}>{user.streak} day</strong>
+                <span style={{ color: C.muted }}>streak</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Ic d={ICONS.check} size={10} color={C.accent} sw={3} />
+                </div>
+                <strong style={{ color: C.text }}>0%</strong>
+                <span style={{ color: C.muted }}>this month</span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Insights */}
+        <div id="dash-insights">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 3, height: 16, borderRadius: 999, background: C.accent }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Insights</span>
+          </div>
+          <Card C={C}>
+            <InsightCard C={C} />
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
