@@ -1,4 +1,5 @@
 import { prisma } from "../prisma";
+import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -9,6 +10,17 @@ import { json, type ServerContext } from "../shared/http";
 export const register = async (ctx: ServerContext) => {
   try {
     const { name, email, password } = ctx.body ?? {};
+
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !name.trim() ||
+      !email.trim() ||
+      password.length < 8
+    ) {
+      return json(400, { error: "Name, valid email, and password (min 8 chars) are required" });
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -30,7 +42,22 @@ export const register = async (ctx: ServerContext) => {
 
     return json(201, { message: "User created", user: { id: user.id, email: user.email, name: user.name } });
   } catch (error) {
-    console.error(error);
+    console.error("REGISTER ERROR:", error);
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return json(500, { error: "Database connection failed. Check DATABASE_URL and DB network access." });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return json(400, { error: "Email is already registered" });
+      }
+
+      if (error.code === "P2021") {
+        return json(500, { error: "Database schema is missing in production. Run Prisma migration deploy." });
+      }
+    }
+
     return json(500, { error: "Server error during registration" });
   }
 };
