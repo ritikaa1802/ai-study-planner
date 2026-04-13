@@ -1,4 +1,36 @@
-node_modules
-dist
-# Keep environment variables out of version control
+# Dependencies
+node_modules/
+
+# Build files
+dist/
+build/
+.next
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Prisma (only ignore local DB if using SQLite)
+prisma/dev.db
+prisma/dev.db-journal
+
+# Uploads (if user-generated)
+uploads/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel

@@ -1,0 +1,242 @@
+import { prisma } from "../prisma";
+import { AppError } from "../utils/appError";
+import { recalculateGoalProgress, logDailyActivity } from "../services/task.service";
+import { createTaskSchema, createTasksBulkSchema, updateTaskSchema } from "../validators/task.validator";
+import { json, type ServerContext } from "../shared/http";
+
+const appErrorJson = (error: unknown) => {
+  if (error instanceof AppError) {
+    return json(error.statusCode, { error: error.message });
+  }
+  return json(500, { error: "Internal server error" });
+};
+
+export const createTask = async (ctx: ServerContext) => {
+  try {
+    const parsed = createTaskSchema.parse(ctx.body);
+    const { title, goalId, focusMinutes } = parsed;
+
+    const userId = ctx.userId as number;
+
+    const goal = await prisma.goal.findFirst({
+      where: {
+        id: Number(goalId),
+        userId,
+      },
+    });
+
+    if (!goal) {
+      throw new AppError("Goal not found", 404);
+    }
+
+    const task = await prisma.task.create({
+      data: {
+        title,
+        goalId: Number(goalId),
+        focusMinutes,
+        userId,
+      },
+    });
+
+    await recalculateGoalProgress(Number(goalId));
+
+    return json(201, task);
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const createTasksBulk = async (ctx: ServerContext) => {
+  try {
+    const parsed = createTasksBulkSchema.parse(ctx.body);
+    const { goalId, tasks } = parsed;
+
+    const userId = ctx.userId as number;
+
+    const goal = await prisma.goal.findFirst({
+      where: {
+        id: Number(goalId),
+        userId,
+      },
+    });
+
+    if (!goal) {
+      throw new AppError("Goal not found", 404);
+    }
+
+    const result = await prisma.task.createMany({
+      data: tasks.map((task) => ({
+        title: task.title,
+        goalId: Number(goalId),
+        focusMinutes: task.focusMinutes,
+        userId,
+      })),
+    });
+
+    await recalculateGoalProgress(Number(goalId));
+
+    return json(201, {
+      createdCount: result.count,
+    });
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const getTasksByGoal = async (ctx: ServerContext) => {
+  try {
+    const { goalId } = ctx.params ?? {};
+    const userId = ctx.userId as number;
+
+    const page = Number(ctx.query?.page) || 1;
+    const limit = Number(ctx.query?.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const goal = await prisma.goal.findFirst({
+      where: {
+        id: Number(goalId),
+        userId,
+      },
+    });
+
+    if (!goal) {
+      throw new AppError("Goal not found", 404);
+    }
+
+    const total = await prisma.task.count({
+      where: {
+        goalId: Number(goalId),
+        userId,
+      },
+    });
+
+    const tasks = await prisma.task.findMany({
+      where: {
+        goalId: Number(goalId),
+        userId,
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return json(200, {
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      tasks,
+    });
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const updateTask = async (ctx: ServerContext) => {
+  try {
+    const parsed = updateTaskSchema.parse(ctx.body);
+    const { completed } = parsed;
+
+    const { id } = ctx.params ?? {};
+    const userId = ctx.userId as number;
+
+    console.log("Updating task", id, "to completed:", completed, "for user", userId);
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: Number(id),
+        userId,
+      },
+    });
+
+    if (!task) {
+      console.log("Task not found");
+      throw new AppError("Task not found", 404);
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: { id: Number(id) },
+      data: { completed },
+    });
+
+    await recalculateGoalProgress(task.goalId);
+
+    if (completed === true) {
+      await logDailyActivity(userId);
+    }
+
+    console.log("Task updated successfully", updatedTask);
+
+    return json(200, updatedTask);
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const deleteTask = async (ctx: ServerContext) => {
+  try {
+    const { id } = ctx.params ?? {};
+    const userId = ctx.userId as number;
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: Number(id),
+        userId,
+      },
+    });
+
+    if (!task) {
+      throw new AppError("Task not found", 404);
+    }
+
+    await prisma.task.delete({
+      where: { id: Number(id) },
+    });
+
+    await recalculateGoalProgress(task.goalId);
+
+    return json(200, { message: "Task deleted successfully" });
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const getTaskById = async (ctx: ServerContext) => {
+  try {
+    const { id } = ctx.params ?? {};
+    const userId = ctx.userId as number;
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: Number(id),
+        userId,
+      },
+    });
+
+    if (!task) {
+      throw new AppError("Task not found", 404);
+    }
+
+    return json(200, task);
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};
+
+export const getAllTasks = async (ctx: ServerContext) => {
+  try {
+    const userId = ctx.userId as number;
+
+    const tasks = await prisma.task.findMany({
+      where: { userId },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return json(200, tasks);
+  } catch (error) {
+    return appErrorJson(error);
+  }
+};

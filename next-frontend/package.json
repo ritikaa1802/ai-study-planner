@@ -8,13 +8,21 @@
     "start": "next start"
   },
   "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
     "next": "14.2.5",
+    "nodemailer": "^8.0.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "typescript": "^5.4.5",
     "@types/node": "^20.14.10",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
     "tailwindcss": "^3.4.18",
