@@ -207,7 +207,11 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
     { label: "3-Day Streak", unlocked: data.activeDaysThisWeek >= 3 },
     { label: "60% Completion", unlocked: data.completionRate >= 60 },
     { label: "Productivity 70+", unlocked: data.productivity >= 70 },
-  ].filter((t) => t.unlocked).map((t) => t.label);
+  ]
+    .filter((t) => t.unlocked)
+    // Keep completion logic in metrics, but do not show this tag in the UI.
+    .filter((t) => t.label !== "60% Completion")
+    .map((t) => t.label);
 
   return (
     <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
@@ -230,6 +234,7 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
+                      fontFamily: tag === "Task Starter" ? "'Trebuchet MS','Segoe UI',sans-serif" : "inherit",
                       color: C.accent,
                       background: C.accentBg,
                       border: `1px solid ${C.border}`,
