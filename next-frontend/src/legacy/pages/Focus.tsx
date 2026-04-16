@@ -304,7 +304,7 @@ export function Focus({ C }: FocusProps) {
           {running && mode === "focus" && showDoneEarly && (
             <button
               onClick={() => { void finishEarly(); }}
-              style={{ background: C.accentBar, color: "#fff", border: "none", borderRadius: 14, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+              style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 14, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
             >
               <Ic d={ICONS.check} size={16} color="#fff" />Done Early
             </button>
