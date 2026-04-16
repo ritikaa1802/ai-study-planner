@@ -7,6 +7,8 @@ import { useAuthContext } from "../context/AuthContext";
 export function useGoals() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [deletedCompletedToday, setDeletedCompletedToday] = useState(0);
+  const [lifetimeGoalsCompleted, setLifetimeGoalsCompleted] = useState(0);
+  const [lifetimeGoalsMissed, setLifetimeGoalsMissed] = useState(0);
   const [loading, setLoading] = useState(true);
   const { refreshUser } = useAuthContext();
 
@@ -21,6 +23,8 @@ export function useGoals() {
 
       const goalsPayload = Array.isArray(data) ? data : data.goals ?? [];
       const retainedCompleted = Array.isArray(data) ? 0 : Number(data.deletedCompletedGoalsToday ?? 0);
+      const lifetimeCompleted = Array.isArray(data) ? 0 : Number(data.lifetimeGoalsCompleted ?? 0);
+      const lifetimeMissed = Array.isArray(data) ? 0 : Number(data.lifetimeGoalsMissed ?? 0);
 
       const mapped = goalsPayload.map((goal: any) => ({
         id: goal.id,
@@ -36,6 +40,8 @@ export function useGoals() {
 
       setGoals(mapped);
       setDeletedCompletedToday(Number.isFinite(retainedCompleted) ? retainedCompleted : 0);
+      setLifetimeGoalsCompleted(Number.isFinite(lifetimeCompleted) ? lifetimeCompleted : 0);
+      setLifetimeGoalsMissed(Number.isFinite(lifetimeMissed) ? lifetimeMissed : 0);
     } catch (err) {
       console.error("Failed to load goals", err);
     } finally {
@@ -109,6 +115,7 @@ export function useGoals() {
 
     const goal = goals.find((g) => g.id === goalId);
     const task = goal?.tasks.find((t) => t.id === taskId);
+    const wasGoalCompleted = !!goal && getGoalProgress(goal) === 100;
     if (!task) {
       console.log("Task not found in state");
       return;
@@ -133,6 +140,20 @@ export function useGoals() {
 
       if (updated.completed === true) {
         refreshUser();
+      }
+
+      if (goal && !wasGoalCompleted) {
+        const nextTasks = goal.tasks.map((t) =>
+          t.id === taskId ? { ...t, done: updated.completed } : t
+        );
+
+        const nextProgress = nextTasks.length
+          ? Math.round((nextTasks.filter((t) => t.done).length / nextTasks.length) * 100)
+          : 0;
+
+        if (nextProgress === 100) {
+          setLifetimeGoalsCompleted((c) => c + 1);
+        }
       }
 
       setGoals((gs) =>
@@ -213,6 +234,8 @@ export function useGoals() {
     deleteTask,
     deleteGoal,
     completed,
+    lifetimeGoalsCompleted,
+    lifetimeGoalsMissed,
     avgProgress,
   };
 }

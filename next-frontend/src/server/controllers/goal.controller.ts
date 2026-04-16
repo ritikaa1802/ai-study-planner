@@ -43,6 +43,8 @@ export const getGoals = async (ctx: ServerContext) => {
       select: {
         deletedCompletedGoalsCount: true,
         deletedCompletedGoalsDate: true,
+        lifetimeGoalsCompleted: true,
+        lifetimeGoalsMissed: true,
       },
     });
 
@@ -61,7 +63,12 @@ export const getGoals = async (ctx: ServerContext) => {
         ? user?.deletedCompletedGoalsCount ?? 0
         : 0;
 
-    return json(200, { goals, deletedCompletedGoalsToday });
+    return json(200, {
+      goals,
+      deletedCompletedGoalsToday,
+      lifetimeGoalsCompleted: Number(user?.lifetimeGoalsCompleted ?? 0),
+      lifetimeGoalsMissed: Number(user?.lifetimeGoalsMissed ?? 0),
+    });
   } catch (error) {
     console.error(error);
     return json(500, { error: "Failed to fetch goals" });

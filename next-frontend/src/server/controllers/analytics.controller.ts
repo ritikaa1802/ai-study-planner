@@ -72,18 +72,25 @@ export const getAnalytics = async (ctx: ServerContext) => {
       where: { userId },
     });
 
-    let userTaskTotals: { lifetimeTasksCreated: number | null; lifetimeTasksCompleted: number | null } | null = null;
+    let userTaskTotals: {
+      lifetimeTasksCreated: number | null;
+      lifetimeTasksCompleted: number | null;
+      lifetimeGoalsCompleted: number | null;
+      lifetimeGoalsMissed: number | null;
+    } | null = null;
     try {
       userTaskTotals = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           lifetimeTasksCreated: true,
           lifetimeTasksCompleted: true,
+          lifetimeGoalsCompleted: true,
+          lifetimeGoalsMissed: true,
         },
       });
     } catch (error) {
       // Allow analytics to keep working if production DB schema is behind recent Prisma fields.
-      console.warn("Analytics fallback: lifetime task counters unavailable", error);
+      console.warn("Analytics fallback: lifetime counters unavailable", error);
     }
 
     const totalTasksDone = Math.max(userTaskTotals?.lifetimeTasksCompleted ?? 0, currentTasksDone);
@@ -108,6 +115,8 @@ export const getAnalytics = async (ctx: ServerContext) => {
       totalTasksDone,
       totalTasksCreated,
       completionRate,
+      lifetimeGoalsCompleted: Number(userTaskTotals?.lifetimeGoalsCompleted ?? 0),
+      lifetimeGoalsMissed: Number(userTaskTotals?.lifetimeGoalsMissed ?? 0),
       activeDaysThisWeek,
       productivity,
       totalStudyHours,

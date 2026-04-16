@@ -64,30 +64,71 @@ export const purgeExpiredCompletedGoals = async (userId: number) => {
 		},
 	});
 
-	if (expiredGoals.length === 0) {
-		return 0;
+	if (expiredGoals.length > 0) {
+		const goalIds = expiredGoals.map((goal) => goal.id);
+
+		await prisma.$transaction([
+			prisma.task.deleteMany({
+				where: {
+					goalId: {
+						in: goalIds,
+					},
+				},
+			}),
+			prisma.goal.deleteMany({
+				where: {
+					id: {
+						in: goalIds,
+					},
+				},
+			}),
+		]);
+
+		await incrementDeletedCompletedGoalsToday(userId, goalIds.length);
 	}
 
-	const goalIds = expiredGoals.map((goal) => goal.id);
-
-	await prisma.$transaction([
-		prisma.task.deleteMany({
-			where: {
-				goalId: {
-					in: goalIds,
-				},
+	const expiredIncompleteGoals = await prisma.goal.findMany({
+		where: {
+			userId,
+			progress: {
+				lt: 100,
 			},
-		}),
-		prisma.goal.deleteMany({
-			where: {
-				id: {
-					in: goalIds,
-				},
+			createdAt: {
+				lte: cutoff,
 			},
-		}),
-	]);
+		},
+		select: {
+			id: true,
+		},
+	});
 
-	await incrementDeletedCompletedGoalsToday(userId, goalIds.length);
+	if (expiredIncompleteGoals.length > 0) {
+		const incompleteIds = expiredIncompleteGoals.map((goal) => goal.id);
 
-	return goalIds.length;
+		await prisma.$transaction([
+			prisma.task.deleteMany({
+				where: {
+					goalId: {
+						in: incompleteIds,
+					},
+				},
+			}),
+			prisma.goal.deleteMany({
+				where: {
+					id: {
+						in: incompleteIds,
+					},
+				},
+			}),
+			(prisma.user.update as any)({
+				where: { id: userId },
+				data: { lifetimeGoalsMissed: { increment: incompleteIds.length } },
+			}),
+		]);
+	}
+
+	return {
+		autoDeletedCompleted: expiredGoals.length,
+		autoDeletedMissed: expiredIncompleteGoals.length,
+	};
 };

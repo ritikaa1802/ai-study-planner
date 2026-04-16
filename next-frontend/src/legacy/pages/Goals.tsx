@@ -25,7 +25,18 @@ interface GoalsProps {
 
 
 export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
-  const { goals, addGoal, toggleTask, addTask, deleteTask, deleteGoal, completed, avgProgress } = useGoals();
+  const {
+    goals,
+    addGoal,
+    toggleTask,
+    addTask,
+    deleteTask,
+    deleteGoal,
+    completed,
+    lifetimeGoalsCompleted,
+    lifetimeGoalsMissed,
+    avgProgress,
+  } = useGoals();
 
   const [showModal, setShowModal] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -91,6 +102,22 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
     <div style={{ padding: "24px 28px", overflowY: "auto", height: "100%", boxSizing: "border-box" }}>
       {/* Stats */}
       <div style={{ display: "flex", gap: 16, marginBottom: 22 }}>
+        <Card C={C} style={{ flex: 1.3, padding: "20px 22px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>Lifetime Goals</div>
+            <Ic d={ICONS.target} size={18} color={C.accent} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ borderRadius: 10, padding: "10px 12px", background: `${C.green}18`, border: `1px solid ${C.green}44` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 4 }}>Completed</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: C.green }}>{lifetimeGoalsCompleted}</div>
+            </div>
+            <div style={{ borderRadius: 10, padding: "10px 12px", background: `${C.red}15`, border: `1px solid ${C.red}44` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.red, marginBottom: 4 }}>Missed</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: C.red }}>{lifetimeGoalsMissed}</div>
+            </div>
+          </div>
+        </Card>
         {([
           [`${goals.length}`, "Active Goals", ICONS.goals],
           [`${completed}`, "Completed", ICONS.trend],

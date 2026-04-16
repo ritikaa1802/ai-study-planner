@@ -4,6 +4,24 @@ import { json, type ServerContext } from "../shared/http";
 export const getDashboardStats = async (ctx: ServerContext) => {
   const userId = ctx.userId as number;
 
+  let lifetimeGoalsCompleted = 0;
+  let lifetimeGoalsMissed = 0;
+
+  try {
+    const user = await (prisma.user.findUnique as any)({
+      where: { id: userId },
+      select: {
+        lifetimeGoalsCompleted: true,
+        lifetimeGoalsMissed: true,
+      },
+    });
+
+    lifetimeGoalsCompleted = Number(user?.lifetimeGoalsCompleted ?? 0);
+    lifetimeGoalsMissed = Number(user?.lifetimeGoalsMissed ?? 0);
+  } catch (error) {
+    console.warn("Dashboard fallback: lifetime goal counters unavailable", error);
+  }
+
   const totalGoals = await prisma.goal.count({
     where: { userId },
   });
@@ -33,5 +51,7 @@ export const getDashboardStats = async (ctx: ServerContext) => {
     completedTasks,
     completionRate,
     totalActiveDays,
+    lifetimeGoalsCompleted,
+    lifetimeGoalsMissed,
   });
 };

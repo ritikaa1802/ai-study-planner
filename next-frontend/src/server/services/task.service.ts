@@ -4,7 +4,7 @@ import { checkAndUnlockAchievements, getUserAchievementStats } from "./achieveme
 export const recalculateGoalProgress = async (goalId: number) => {
   const goalBefore = await prisma.goal.findUnique({
     where: { id: goalId },
-    select: { id: true, userId: true, progress: true, completedAt: true },
+    select: { id: true, userId: true, progress: true, completedAt: true, completionCounted: true },
   });
 
   if (!goalBefore) {
@@ -29,12 +29,28 @@ export const recalculateGoalProgress = async (goalId: number) => {
       ? goalBefore.completedAt ?? new Date()
       : null;
 
-  await prisma.goal.update({
-    where: { id: goalId },
-    data: { progress, completedAt },
-  });
+  const becameCompleted = goalBefore.progress < 100 && progress >= 100;
+  const shouldCountLifetimeCompleted = becameCompleted && !goalBefore.completionCounted;
 
-  if (goalBefore.progress < 100 && progress >= 100) {
+  if (shouldCountLifetimeCompleted) {
+    await prisma.$transaction([
+      prisma.goal.update({
+        where: { id: goalId },
+        data: { progress, completedAt, completionCounted: true },
+      }),
+      (prisma.user.update as any)({
+        where: { id: goalBefore.userId },
+        data: { lifetimeGoalsCompleted: { increment: 1 } },
+      }),
+    ]);
+  } else {
+    await prisma.goal.update({
+      where: { id: goalId },
+      data: { progress, completedAt },
+    });
+  }
+
+  if (becameCompleted) {
     const stats = await getUserAchievementStats(goalBefore.userId);
     await checkAndUnlockAchievements(goalBefore.userId, stats);
   }
