@@ -1,5 +1,9 @@
 import { API_BASE } from "../config";
 
+type ApiFetchOptions = RequestInit & {
+  skipAuthRedirect?: boolean;
+};
+
 export function getApiBase() {
   return API_BASE?.trim()
     ? API_BASE
@@ -19,14 +23,15 @@ export function resolveApiUrl(path: string) {
 
 export async function apiFetch(
   endpoint: string,
-  options: RequestInit = {}
+  options: ApiFetchOptions = {}
 ) {
   const base = getApiBase();
+  const { skipAuthRedirect = false, ...requestOptions } = options;
 
   const token = localStorage.getItem("token");
-  const isFormData = options.body instanceof FormData;
+  const isFormData = requestOptions.body instanceof FormData;
   const headers: Record<string, string> = {
-    ...(options.headers as Record<string, string> || {}),
+    ...(requestOptions.headers as Record<string, string> || {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
@@ -35,11 +40,11 @@ export async function apiFetch(
   }
 
   const res = await fetch(`${base}${endpoint}`, {
-    ...options,
+    ...requestOptions,
     headers,
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && !skipAuthRedirect) {
     localStorage.removeItem("token");
     window.location.reload();
   }

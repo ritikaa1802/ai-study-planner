@@ -193,6 +193,11 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
                         if (task.focusMinutes) {
                           localStorage.setItem("focus_selected_minutes", String(task.focusMinutes));
                         }
+                        localStorage.setItem("focus_task_context", JSON.stringify({
+                          taskId: task.id,
+                          goalId: goal.id,
+                          title: task.text,
+                        }));
                         localStorage.setItem("focus_autostart", "1");
                         onNavigateToPomodoro?.(task.focusMinutes ?? undefined);
                       }}

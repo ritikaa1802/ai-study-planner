@@ -18,6 +18,13 @@ interface FocusProps { C: Theme; }
 
 const BREAK_PRESETS = [5, 10, 15];
 const STORAGE_KEY = "focus_selected_minutes";
+const TASK_CONTEXT_KEY = "focus_task_context";
+
+type FocusTaskContext = {
+  taskId: number;
+  goalId?: number;
+  title?: string;
+};
 
 export function Focus({ C }: FocusProps) {
   const { user } = useAuthContext();
@@ -36,6 +43,22 @@ export function Focus({ C }: FocusProps) {
   const activeFocusDurationRef = useRef(selectedFocusMinutes * 60);
   const activeFocusMinutesRef = useRef(selectedFocusMinutes);
   const activeSubjectRef = useRef("General");
+  const activeTaskRef = useRef<FocusTaskContext | null>(null);
+
+  const completeLinkedTask = useCallback(async () => {
+    const linkedTask = activeTaskRef.current;
+    if (!linkedTask?.taskId) return;
+
+    try {
+      await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ completed: true }),
+        skipAuthRedirect: true,
+      });
+    } catch (error) {
+      console.error("Failed to mark linked task complete", error);
+    }
+  }, []);
 
   const saveStudySession = useCallback(async (sessionSubject: string, durationMinutes: number) => {
     setIsSavingSession(true);
@@ -46,6 +69,7 @@ export function Focus({ C }: FocusProps) {
           subject: sessionSubject,
           duration: Math.max(1, Math.round(durationMinutes)),
         }),
+        skipAuthRedirect: true,
       });
     } catch (error) {
       console.error("Failed to save study session", error);
@@ -73,7 +97,10 @@ export function Focus({ C }: FocusProps) {
       setSessions((s) => s + 1);
       setCompletedMinutesToday((m) => m + activeFocusMinutesRef.current);
       void saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
+      void completeLinkedTask();
       setTime(selectedFocusMinutes * 60);
+      activeTaskRef.current = null;
+      localStorage.removeItem(TASK_CONTEXT_KEY);
       return;
     }
 
@@ -135,9 +162,38 @@ export function Focus({ C }: FocusProps) {
     setTime(selectedFocusMinutes * 60);
     activeFocusDurationRef.current = selectedFocusMinutes * 60;
     activeFocusMinutesRef.current = selectedFocusMinutes;
-    activeSubjectRef.current = "General";
+    const taskContextRaw = localStorage.getItem(TASK_CONTEXT_KEY);
+    let linkedTask: FocusTaskContext | null = null;
+    if (taskContextRaw) {
+      try {
+        linkedTask = JSON.parse(taskContextRaw) as FocusTaskContext;
+      } catch {
+        linkedTask = null;
+      }
+    }
+
+    activeTaskRef.current = linkedTask;
+    activeSubjectRef.current = linkedTask?.title?.trim() || "General";
     setRunning(true);
   }, [selectedFocusMinutes]);
+
+  const finishEarly = useCallback(async () => {
+    if (!running || mode !== "focus") return;
+
+    const elapsedSeconds = Math.max(0, activeFocusDurationRef.current - time);
+    const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+
+    setRunning(false);
+    setSessions((s) => s + 1);
+    setCompletedMinutesToday((m) => m + durationMinutes);
+
+    await saveStudySession(activeSubjectRef.current, durationMinutes);
+    await completeLinkedTask();
+
+    setTime(selectedFocusMinutes * 60);
+    activeTaskRef.current = null;
+    localStorage.removeItem(TASK_CONTEXT_KEY);
+  }, [running, mode, time, selectedFocusMinutes, saveStudySession, completeLinkedTask]);
 
   const switchMode = (m: "focus" | "break") => {
     setMode(m);
@@ -222,13 +278,31 @@ export function Focus({ C }: FocusProps) {
             if (!running && mode === "focus") {
               activeFocusDurationRef.current = time;
               activeFocusMinutesRef.current = Math.max(1, Math.round(time / 60));
-              activeSubjectRef.current = "General";
+              const taskContextRaw = localStorage.getItem(TASK_CONTEXT_KEY);
+              let linkedTask: FocusTaskContext | null = null;
+              if (taskContextRaw) {
+                try {
+                  linkedTask = JSON.parse(taskContextRaw) as FocusTaskContext;
+                } catch {
+                  linkedTask = null;
+                }
+              }
+              activeTaskRef.current = linkedTask;
+              activeSubjectRef.current = linkedTask?.title?.trim() || "General";
             }
             setRunning(!running);
           }}
             style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 14, padding: "13px 36px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
             <Ic d={running ? ICONS.pause : ICONS.play} size={16} color="#fff" />{running ? "Pause" : "Start"}
           </button>
+          {running && mode === "focus" && (
+            <button
+              onClick={() => { void finishEarly(); }}
+              style={{ background: C.green, color: "#fff", border: "none", borderRadius: 14, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <Ic d={ICONS.check} size={16} color="#fff" />Done Early
+            </button>
+          )}
           <button onClick={() => { setRunning(false); setTime(mode === "focus" ? selectedFocusMinutes * 60 : selectedBreakMinutes * 60); }}
             style={{ background: C.bg, color: C.text, border: `1px solid ${C.border}`, borderRadius: 14, padding: "13px 26px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
             <Ic d={ICONS.reset} size={16} color={C.text} />Reset
