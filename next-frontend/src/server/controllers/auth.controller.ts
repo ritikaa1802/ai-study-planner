@@ -24,6 +24,7 @@ export const register = async (ctx: ServerContext) => {
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
+      select: { id: true },
     });
 
     if (existingUser) {
@@ -72,6 +73,10 @@ export const login = async (ctx: ServerContext) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        password: true,
+      },
     });
 
     if (!user) {
@@ -133,6 +138,10 @@ export const refreshToken = async (ctx: ServerContext) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
+      select: {
+        id: true,
+        refreshToken: true,
+      },
     });
 
     if (!user || user.refreshToken !== refreshToken) {
@@ -154,7 +163,10 @@ export const forgotPassword = async (ctx: ServerContext) => {
       return json(400, { error: "Valid email is required" });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
 
     if (!user) {
       return json(200, { message: "If that email is registered, a reset link has been sent." });
@@ -196,6 +208,7 @@ export const resetPassword = async (ctx: ServerContext) => {
       passwordResetToken: hashedToken,
       passwordResetExpires: { gt: new Date() },
     },
+    select: { id: true },
   });
 
   if (!user) {
@@ -240,7 +253,13 @@ export const changePassword = async (ctx: ServerContext) => {
       return json(401, { error: "Unauthorized" });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        password: true,
+      },
+    });
     if (!user) {
       return json(404, { error: "User not found" });
     }
