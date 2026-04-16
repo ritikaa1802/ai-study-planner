@@ -4,7 +4,7 @@ import { checkAndUnlockAchievements, getUserAchievementStats } from "./achieveme
 export const recalculateGoalProgress = async (goalId: number) => {
   const goalBefore = await prisma.goal.findUnique({
     where: { id: goalId },
-    select: { id: true, userId: true, progress: true },
+    select: { id: true, userId: true, progress: true, completedAt: true },
   });
 
   if (!goalBefore) {
@@ -24,9 +24,14 @@ export const recalculateGoalProgress = async (goalId: number) => {
 
   const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+  const completedAt =
+    progress >= 100
+      ? goalBefore.completedAt ?? new Date()
+      : null;
+
   await prisma.goal.update({
     where: { id: goalId },
-    data: { progress },
+    data: { progress, completedAt },
   });
 
   if (goalBefore.progress < 100 && progress >= 100) {

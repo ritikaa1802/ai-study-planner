@@ -1,5 +1,6 @@
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
+import { purgeExpiredCompletedGoals } from "../services/goal.service";
 
 export const createGoal = async (ctx: ServerContext) => {
   try {
@@ -25,6 +26,8 @@ export const createGoal = async (ctx: ServerContext) => {
 export const getGoals = async (ctx: ServerContext) => {
   try {
     const userId = ctx.userId as number;
+
+    await purgeExpiredCompletedGoals(userId);
 
     const goals = await prisma.goal.findMany({
       where: {
