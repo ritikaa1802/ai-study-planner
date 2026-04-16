@@ -28,7 +28,7 @@ type MilestoneItem = {
   points: number;
 };
 
-const X_POSITIONS = [20, 50, 80];
+const X_POSITIONS = [14, 50, 86];
 
 const iconForCategory = (category: string) => {
   const c = normalizeCategory(category);
@@ -214,8 +214,8 @@ export function AchievementsPage() {
         background: `linear-gradient(180deg, ${C.bg} 0%, ${C.accentBg} 55%, ${C.bg} 100%)`,
       }}
     >
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto w-full max-w-5xl space-y-8 md:space-y-10">
+        <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-black tracking-tight" style={{ color: C.text }}>Achievement Path</h1>
             <p className="text-sm" style={{ color: C.subtext }}>Complete each milestone to unlock the next.</p>
@@ -256,35 +256,37 @@ export function AchievementsPage() {
           </section>
         ) : (
           <section
-            className="rounded-3xl border p-5 backdrop-blur-sm"
+            className="rounded-3xl border px-5 py-7 backdrop-blur-sm md:px-8 md:py-9"
             style={{ borderColor: C.border, background: C.card }}
           >
             <div className="relative">
-              <div className="space-y-8">
+              <div className="space-y-12 md:space-y-14">
                 {milestones.map((milestone, index) => {
                   const pos = index % 3;
                   const x1 = X_POSITIONS[pos];
                   const x2 = X_POSITIONS[(index + 1) % 3];
-                  const bend = index % 2 === 0 ? 18 : 26;
+                  const bend = index % 2 === 0 ? 30 : 36;
                   const controlX = x1 < x2 ? (x1 + x2) / 2 + bend : (x1 + x2) / 2 - bend;
+                  const controlY = index % 2 === 0 ? 38 : 66;
                   const Icon = iconForCategory(milestone.category);
 
                   return (
-                    <div key={milestone.id} className="relative h-28">
+                    <div key={milestone.id} className="relative h-36 md:h-40">
                       {index < milestones.length - 1 && (
                         <>
-                          <svg className="absolute left-0 top-14 hidden h-24 w-full md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                          <svg className="absolute left-0 top-[4.25rem] hidden h-32 w-full md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
                             <path
-                              d={`M ${x1} 10 Q ${controlX} 54 ${x2} 98`}
+                              d={`M ${x1} 8 Q ${controlX} ${controlY} ${x2} 96`}
                               fill="none"
                               stroke={C.accentBar}
-                              strokeWidth="2.2"
-                              strokeDasharray="5 7"
-                              opacity="0.7"
+                              strokeWidth="2.8"
+                              strokeDasharray="4 8"
+                              strokeLinecap="round"
+                              opacity="0.82"
                             />
                           </svg>
-                          <svg className="absolute left-1/2 top-14 h-24 w-8 -translate-x-1/2 md:hidden" viewBox="0 0 32 100" preserveAspectRatio="none" aria-hidden>
-                            <path d="M 16 8 Q 16 52 16 96" fill="none" stroke={C.accentBar} strokeWidth="2.2" strokeDasharray="5 7" opacity="0.7" />
+                          <svg className="absolute left-1/2 top-[4.25rem] h-32 w-10 -translate-x-1/2 md:hidden" viewBox="0 0 32 100" preserveAspectRatio="none" aria-hidden>
+                            <path d="M 16 6 Q 16 50 16 96" fill="none" stroke={C.accentBar} strokeWidth="2.8" strokeDasharray="4 8" strokeLinecap="round" opacity="0.82" />
                           </svg>
                         </>
                       )}
@@ -293,22 +295,22 @@ export function AchievementsPage() {
                         <div className="group flex flex-col items-center">
                           <button
                             type="button"
-                            className={`h-20 w-20 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 ${milestone.state === "current" ? "animate-pulse" : ""}`}
+                            className={`h-20 w-20 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 md:h-24 md:w-24 ${milestone.state === "current" ? "animate-pulse" : ""}`}
                             style={stoneStyleByState(milestone.state, C)}
                             title={`${milestone.name} (${milestone.state})`}
                           >
                             <span className="sr-only">{milestone.name}</span>
                             <span className="flex h-full w-full items-center justify-center">
                               {milestone.state === "completed" ? (
-                                <CheckCircle2 className="h-8 w-8" />
+                                <CheckCircle2 className="h-8 w-8 md:h-9 md:w-9" />
                               ) : milestone.state === "locked" ? (
-                                <Lock className="h-8 w-8" />
+                                <Lock className="h-8 w-8 md:h-9 md:w-9" />
                               ) : (
-                                <Icon className="h-8 w-8" />
+                                <Icon className="h-8 w-8 md:h-9 md:w-9" />
                               )}
                             </span>
                           </button>
-                          <div className="mt-2 max-w-[10rem] text-center">
+                          <div className="mt-3 max-w-[10rem] text-center">
                             <p className="truncate text-xs font-semibold" style={{ color: C.text }}>{milestone.name}</p>
                             <p className="text-[11px]" style={{ color: C.subtext }}>{milestone.points} pts</p>
                           </div>
