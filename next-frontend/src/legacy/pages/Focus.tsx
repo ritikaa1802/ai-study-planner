@@ -37,6 +37,7 @@ export function Focus({ C }: FocusProps) {
   const [time, setTime] = useState(selectedFocusMinutes * 60);
   const [running, setRunning] = useState(false);
   const [isSavingSession, setIsSavingSession] = useState(false);
+  const [showDoneEarly, setShowDoneEarly] = useState(false);
   const [sessions, setSessions] = useState(0); // starts at 0 for new users
   const [completedMinutesToday, setCompletedMinutesToday] = useState(0);
   const ref = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -98,6 +99,7 @@ export function Focus({ C }: FocusProps) {
       setCompletedMinutesToday((m) => m + activeFocusMinutesRef.current);
       void saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
       void completeLinkedTask();
+      setShowDoneEarly(false);
       setTime(selectedFocusMinutes * 60);
       activeTaskRef.current = null;
       localStorage.removeItem(TASK_CONTEXT_KEY);
@@ -174,6 +176,7 @@ export function Focus({ C }: FocusProps) {
 
     activeTaskRef.current = linkedTask;
     activeSubjectRef.current = linkedTask?.title?.trim() || "General";
+    setShowDoneEarly(!!linkedTask);
     setRunning(true);
   }, [selectedFocusMinutes]);
 
@@ -190,6 +193,7 @@ export function Focus({ C }: FocusProps) {
     await saveStudySession(activeSubjectRef.current, durationMinutes);
     await completeLinkedTask();
 
+    setShowDoneEarly(false);
     setTime(selectedFocusMinutes * 60);
     activeTaskRef.current = null;
     localStorage.removeItem(TASK_CONTEXT_KEY);
@@ -198,6 +202,7 @@ export function Focus({ C }: FocusProps) {
   const switchMode = (m: "focus" | "break") => {
     setMode(m);
     setRunning(false);
+    setShowDoneEarly(false);
     setTime(m === "focus" ? selectedFocusMinutes * 60 : selectedBreakMinutes * 60);
   };
 
@@ -289,13 +294,14 @@ export function Focus({ C }: FocusProps) {
               }
               activeTaskRef.current = linkedTask;
               activeSubjectRef.current = linkedTask?.title?.trim() || "General";
+              setShowDoneEarly(!!linkedTask);
             }
             setRunning(!running);
           }}
             style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 14, padding: "13px 36px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
             <Ic d={running ? ICONS.pause : ICONS.play} size={16} color="#fff" />{running ? "Pause" : "Start"}
           </button>
-          {running && mode === "focus" && (
+          {running && mode === "focus" && showDoneEarly && (
             <button
               onClick={() => { void finishEarly(); }}
               style={{ background: C.accentBar, color: "#fff", border: "none", borderRadius: 14, padding: "13px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
@@ -303,7 +309,7 @@ export function Focus({ C }: FocusProps) {
               <Ic d={ICONS.check} size={16} color="#fff" />Done Early
             </button>
           )}
-          <button onClick={() => { setRunning(false); setTime(mode === "focus" ? selectedFocusMinutes * 60 : selectedBreakMinutes * 60); }}
+          <button onClick={() => { setRunning(false); setShowDoneEarly(false); setTime(mode === "focus" ? selectedFocusMinutes * 60 : selectedBreakMinutes * 60); }}
             style={{ background: C.bg, color: C.text, border: `1px solid ${C.border}`, borderRadius: 14, padding: "13px 26px", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
             <Ic d={ICONS.reset} size={16} color={C.text} />Reset
           </button>
