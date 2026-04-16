@@ -30,13 +30,24 @@ export const createTask = async (ctx: ServerContext) => {
       throw new AppError("Goal not found", 404);
     }
 
-    const task = await prisma.task.create({
-      data: {
-        title,
-        goalId: Number(goalId),
-        focusMinutes,
-        userId,
-      },
+    const task = await prisma.$transaction(async (tx) => {
+      const createdTask = await tx.task.create({
+        data: {
+          title,
+          goalId: Number(goalId),
+          focusMinutes,
+          userId,
+        },
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          lifetimeTasksCreated: { increment: 1 },
+        },
+      });
+
+      return createdTask;
     });
 
     await recalculateGoalProgress(Number(goalId));
@@ -65,13 +76,26 @@ export const createTasksBulk = async (ctx: ServerContext) => {
       throw new AppError("Goal not found", 404);
     }
 
-    const result = await prisma.task.createMany({
-      data: tasks.map((task) => ({
-        title: task.title,
-        goalId: Number(goalId),
-        focusMinutes: task.focusMinutes,
-        userId,
-      })),
+    const result = await prisma.$transaction(async (tx) => {
+      const created = await tx.task.createMany({
+        data: tasks.map((task) => ({
+          title: task.title,
+          goalId: Number(goalId),
+          focusMinutes: task.focusMinutes,
+          userId,
+        })),
+      });
+
+      if (created.count > 0) {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            lifetimeTasksCreated: { increment: created.count },
+          },
+        });
+      }
+
+      return created;
     });
 
     await recalculateGoalProgress(Number(goalId));
@@ -156,10 +180,30 @@ export const updateTask = async (ctx: ServerContext) => {
       throw new AppError("Task not found", 404);
     }
 
-    const updatedTask = await prisma.task.update({
-      where: { id: Number(id) },
-      data: { completed },
-    });
+    let updatedTask;
+
+    if (completed === true && task.completed === false && task.completionCounted === false) {
+      updatedTask = await prisma.$transaction(async (tx) => {
+        const nextTask = await tx.task.update({
+          where: { id: Number(id) },
+          data: { completed: true, completionCounted: true },
+        });
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            lifetimeTasksCompleted: { increment: 1 },
+          },
+        });
+
+        return nextTask;
+      });
+    } else {
+      updatedTask = await prisma.task.update({
+        where: { id: Number(id) },
+        data: { completed },
+      });
+    }
 
     await recalculateGoalProgress(task.goalId);
 

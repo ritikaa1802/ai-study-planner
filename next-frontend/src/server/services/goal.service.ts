@@ -2,6 +2,39 @@ import { prisma } from "../prisma";
 
 const AUTO_DELETE_AFTER_HOURS = 24;
 
+const getUtcDayStart = (date = new Date()) =>
+	new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+
+export const incrementDeletedCompletedGoalsToday = async (userId: number, by = 1) => {
+	if (by <= 0) return;
+
+	const todayUtc = getUtcDayStart();
+
+	const user = await (prisma.user.findUnique as any)({
+		where: { id: userId },
+		select: {
+			deletedCompletedGoalsCount: true,
+			deletedCompletedGoalsDate: true,
+		},
+	});
+
+	if (!user) return;
+
+	const lastDate = user.deletedCompletedGoalsDate
+		? getUtcDayStart(new Date(user.deletedCompletedGoalsDate))
+		: null;
+
+	const isSameDay = !!lastDate && lastDate.getTime() === todayUtc.getTime();
+
+	await (prisma.user.update as any)({
+		where: { id: userId },
+		data: {
+			deletedCompletedGoalsCount: isSameDay ? user.deletedCompletedGoalsCount + by : by,
+			deletedCompletedGoalsDate: todayUtc,
+		},
+	});
+};
+
 export const purgeExpiredCompletedGoals = async (userId: number) => {
 	const now = new Date();
 	const cutoff = new Date(now.getTime() - AUTO_DELETE_AFTER_HOURS * 60 * 60 * 1000);
@@ -53,6 +86,8 @@ export const purgeExpiredCompletedGoals = async (userId: number) => {
 			},
 		}),
 	]);
+
+	await incrementDeletedCompletedGoalsToday(userId, goalIds.length);
 
 	return goalIds.length;
 };

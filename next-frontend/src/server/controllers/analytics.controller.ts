@@ -64,12 +64,25 @@ export const getAnalytics = async (ctx: ServerContext) => {
     const totalStudyHours = Number((((totalStudyAgg._sum.duration ?? 0) as number) / 60).toFixed(1));
     const weeklyStudyHours = Number(wkRounded.reduce((sum: number, h: number) => sum + h, 0).toFixed(1));
 
-    const totalTasksDone = await prisma.task.count({
+    const currentTasksDone = await prisma.task.count({
       where: { userId, completed: true },
     });
-    const totalTasksCreated = await prisma.task.count({
+
+    const currentTasksCreated = await prisma.task.count({
       where: { userId },
     });
+
+    const userTaskTotals = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        lifetimeTasksCreated: true,
+        lifetimeTasksCompleted: true,
+      },
+    });
+
+    const totalTasksDone = Math.max(userTaskTotals?.lifetimeTasksCompleted ?? 0, currentTasksDone);
+    const totalTasksCreated = Math.max(userTaskTotals?.lifetimeTasksCreated ?? 0, currentTasksCreated);
+
     const completionRate = totalTasksCreated > 0 ? Math.round((totalTasksDone / totalTasksCreated) * 100) : 0;
 
     let activeDaysThisWeek = 0;

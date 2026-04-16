@@ -158,6 +158,7 @@ model Task {
   id        Int      @id @default(autoincrement())
   title     String
   completed Boolean  @default(false)
+  completionCounted Boolean @default(false)
   focusMinutes Int?
   goalId    Int
   userId    Int
@@ -175,6 +176,10 @@ model User {
   name                  String
   email                 String                  @unique
   password              String
+  lifetimeTasksCreated  Int                     @default(0)
+  lifetimeTasksCompleted Int                    @default(0)
+  deletedCompletedGoalsCount Int                @default(0)
+  deletedCompletedGoalsDate DateTime?
   createdAt             DateTime                @default(now())
   refreshToken          String?
   role                  user_role               @default(USER)

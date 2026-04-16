@@ -1,6 +1,6 @@
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
-import { purgeExpiredCompletedGoals } from "../services/goal.service";
+import { incrementDeletedCompletedGoalsToday, purgeExpiredCompletedGoals } from "../services/goal.service";
 
 export const createGoal = async (ctx: ServerContext) => {
   try {
@@ -38,7 +38,30 @@ export const getGoals = async (ctx: ServerContext) => {
       },
     });
 
-    return json(200, goals);
+    const user = await (prisma.user.findUnique as any)({
+      where: { id: userId },
+      select: {
+        deletedCompletedGoalsCount: true,
+        deletedCompletedGoalsDate: true,
+      },
+    });
+
+    const now = new Date();
+    const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const retainedDate = user?.deletedCompletedGoalsDate
+      ? new Date(Date.UTC(
+          user.deletedCompletedGoalsDate.getUTCFullYear(),
+          user.deletedCompletedGoalsDate.getUTCMonth(),
+          user.deletedCompletedGoalsDate.getUTCDate()
+        ))
+      : null;
+
+    const deletedCompletedGoalsToday =
+      retainedDate && retainedDate.getTime() === todayUtc.getTime()
+        ? user?.deletedCompletedGoalsCount ?? 0
+        : 0;
+
+    return json(200, { goals, deletedCompletedGoalsToday });
   } catch (error) {
     console.error(error);
     return json(500, { error: "Failed to fetch goals" });
@@ -97,6 +120,10 @@ export const deleteGoal = async (ctx: ServerContext) => {
     await prisma.goal.delete({
       where: { id: Number(id) },
     });
+
+    if (goal.progress >= 100) {
+      await incrementDeletedCompletedGoalsToday(userId, 1);
+    }
 
     return json(200, { message: "Goal deleted successfully" });
   } catch (error) {

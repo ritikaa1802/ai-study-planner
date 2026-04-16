@@ -6,6 +6,7 @@ import { useAuthContext } from "../context/AuthContext";
 
 export function useGoals() {
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [deletedCompletedToday, setDeletedCompletedToday] = useState(0);
   const [loading, setLoading] = useState(true);
   const { refreshUser } = useAuthContext();
 
@@ -18,7 +19,10 @@ export function useGoals() {
       const res = await apiFetch("/api/goals");
       const data = await res.json();
 
-      const mapped = data.map((goal: any) => ({
+      const goalsPayload = Array.isArray(data) ? data : data.goals ?? [];
+      const retainedCompleted = Array.isArray(data) ? 0 : Number(data.deletedCompletedGoalsToday ?? 0);
+
+      const mapped = goalsPayload.map((goal: any) => ({
         id: goal.id,
         title: goal.title,
         type: goal.type,
@@ -31,6 +35,7 @@ export function useGoals() {
       }));
 
       setGoals(mapped);
+      setDeletedCompletedToday(Number.isFinite(retainedCompleted) ? retainedCompleted : 0);
     } catch (err) {
       console.error("Failed to load goals", err);
     } finally {
@@ -176,6 +181,9 @@ export function useGoals() {
   }
 
   async function deleteGoal(goalId: number) {
+    const deletedGoal = goals.find((g) => g.id === goalId);
+    const wasCompleted = !!deletedGoal && getGoalProgress(deletedGoal) === 100;
+
     const res = await apiFetch(`/api/goals/${goalId}`, {
       method: "DELETE",
     });
@@ -183,9 +191,12 @@ export function useGoals() {
     if (!res.ok) return;
 
     setGoals((gs) => gs.filter((g) => g.id !== goalId));
+    if (wasCompleted) {
+      setDeletedCompletedToday((c) => c + 1);
+    }
   }
 
-  const completed = goals.filter((g) => getGoalProgress(g) === 100).length;
+  const completed = goals.filter((g) => getGoalProgress(g) === 100).length + deletedCompletedToday;
 
   const avgProgress = goals.length
     ? Math.round(
