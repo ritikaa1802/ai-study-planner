@@ -234,7 +234,7 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      fontFamily: tag === "Task Starter" ? "'Trebuchet MS','Segoe UI',sans-serif" : "inherit",
+                      fontStyle: tag === "Task Starter" ? "italic" : "normal",
                       color: C.accent,
                       background: C.accentBg,
                       border: `1px solid ${C.border}`,
