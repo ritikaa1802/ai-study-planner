@@ -33,8 +33,8 @@ export function Navbar({ C }: HeaderProps) {
 
   const unreadCount = notifs.filter((n) => n.unread).length;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-  const avatarSrc = user.avatar && (user.avatar.startsWith("/") || user.avatar.startsWith("http"))
-    ? resolveApiUrl(user.avatar)
+  const avatarSrc = user.avatar
+    ? (user.avatar.startsWith("data:") ? user.avatar : (user.avatar.startsWith("/") || user.avatar.startsWith("http") ? resolveApiUrl(user.avatar) : ""))
     : "";
 
   useEffect(() => {

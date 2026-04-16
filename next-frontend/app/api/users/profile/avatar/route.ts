@@ -1,14 +1,9 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { userController } from "@/server";
 import { requireUserId } from "../../../_lib/auth";
 
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-
-const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, "-");
+const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,22 +24,17 @@ export async function POST(req: NextRequest) {
     }
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      return NextResponse.json({ error: "Image is too large. Max size is 5MB." }, { status: 400 });
+      return NextResponse.json({ error: "Image is too large. Max size is 2MB." }, { status: 400 });
     }
 
-    const ext = path.extname(file.name || "") || ".jpg";
-    const filename = `${Date.now()}-${randomUUID()}-${sanitizeFilename(path.basename(file.name || "avatar", ext))}${ext}`;
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-
-    await mkdir(uploadsDir, { recursive: true });
-
     const arrayBuffer = await file.arrayBuffer();
-    await writeFile(path.join(uploadsDir, filename), Buffer.from(arrayBuffer));
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const avatarDataUrl = `data:${file.type};base64,${base64}`;
 
-    const result = await userController.updateProfileAvatar({
+    const result = await userController.updateProfile({
       headers: Object.fromEntries(req.headers.entries()),
       userId: auth.userId,
-      file: { filename },
+      body: { avatar: avatarDataUrl },
     });
 
     return NextResponse.json(result.body, { status: result.status });

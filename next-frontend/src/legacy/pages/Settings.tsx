@@ -400,8 +400,8 @@ export function Settings({ C, dark, setDark }: SettingsProps) {
   const defaultNotifs = { tasks: true, sessions: true, weekly: false, motivational: true };
   const [notifs, setNotifs] = useState(user?.notifs ? (typeof user.notifs === 'string' ? JSON.parse(user.notifs) : user.notifs) : defaultNotifs);
 
-  const avatarSrc = user?.avatar && (user.avatar.startsWith("/") || user.avatar.startsWith("http"))
-    ? resolveApiUrl(user.avatar)
+  const avatarSrc = user?.avatar
+    ? (user.avatar.startsWith("data:") ? user.avatar : (user.avatar.startsWith("/") || user.avatar.startsWith("http") ? resolveApiUrl(user.avatar) : ""))
     : "";
 
   useEffect(() => {
