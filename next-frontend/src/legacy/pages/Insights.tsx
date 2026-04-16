@@ -232,12 +232,12 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
                   <span
                     key={tag}
                     style={{
-                      fontSize: 10,
+                      fontSize: tag === "Task Starter" ? 12 : 10,
                       fontWeight: 700,
                       fontStyle: tag === "Task Starter" ? "italic" : "normal",
-                      color: C.accent,
-                      background: C.accentBg,
-                      border: `1px solid ${C.border}`,
+                      color: tag === "Task Starter" ? "#ffffff" : C.accent,
+                      background: tag === "Task Starter" ? C.accent : C.accentBg,
+                      border: `1px solid ${tag === "Task Starter" ? C.accent : C.border}`,
                       borderRadius: 999,
                       padding: "3px 8px",
                       lineHeight: 1.1,
