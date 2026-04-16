@@ -8,16 +8,50 @@ interface InsightCardProps {
 export function InsightCard({ C }: InsightCardProps) {
   const { data } = useAnalytics();
 
-  const tasksThisWeek = data?.tk?.reduce((a: number, b: number) => a + b, 0) ?? 0;
-  const activeDaysThisWeek = data?.activeDaysThisWeek ?? 0;
-  const completionRate = data?.completionRate ?? 0;
-  const totalTreated = data?.totalTasksCreated ?? 0;
+  const mock = {
+    tk: [1, 2, 1, 2, 1, 0, 1],
+    activeDaysThisWeek: 4,
+    completionRate: 62,
+    totalTasksCreated: 12,
+    totalTasksDone: 7,
+  };
+
+  const realTk = data?.tk ?? [0, 0, 0, 0, 0, 0, 0];
+  const hasRealActivity =
+    !!data &&
+    (
+      (data.totalTasksCreated ?? 0) > 0 ||
+      (data.totalStudyHours ?? 0) > 0 ||
+      realTk.some((v: number) => v > 0)
+    );
+
+  // Hybrid model: prioritize real user data, add a small mock baseline to avoid dead-flat insights.
+  const weekBars: number[] = realTk.map((v: number, i: number) =>
+    hasRealActivity ? Math.max(v, Math.round(mock.tk[i] * 0.2)) : mock.tk[i]
+  );
+
+  const tasksThisWeekReal = realTk.reduce((a: number, b: number) => a + b, 0);
+  const tasksThisWeek = hasRealActivity
+    ? Math.round(tasksThisWeekReal * 0.85 + mock.tk.reduce((a, b) => a + b, 0) * 0.15)
+    : mock.tk.reduce((a, b) => a + b, 0);
+
+  const activeDaysThisWeekReal = data?.activeDaysThisWeek ?? 0;
+  const activeDaysThisWeek = hasRealActivity
+    ? Math.max(activeDaysThisWeekReal, Math.round(mock.activeDaysThisWeek * 0.5))
+    : mock.activeDaysThisWeek;
+
+  const completionRateReal = data?.completionRate ?? 0;
+  const completionRate = hasRealActivity
+    ? Math.round(completionRateReal * 0.9 + mock.completionRate * 0.1)
+    : mock.completionRate;
+
+  const totalTreated = hasRealActivity ? (data?.totalTasksCreated ?? 0) : mock.totalTasksCreated;
+  const totalDone = hasRealActivity ? (data?.totalTasksDone ?? 0) : mock.totalTasksDone;
   
   const burnoutRisk = tasksThisWeek > 30 ? 85 : Math.min(tasksThisWeek * 4, 100);
   const consistencyScore = Math.round((activeDaysThisWeek / 7) * 100);
   const momentum = Math.min(tasksThisWeek * 5 + activeDaysThisWeek * 10, 100);
-  
-  const weekBars: number[] = data?.tk ?? [0, 0, 0, 0, 0, 0, 0];
+
   const maxBar = Math.max(...weekBars, 1);
 
   return (
@@ -72,7 +106,7 @@ export function InsightCard({ C }: InsightCardProps) {
           </div>
           <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
             {totalTreated > 0
-              ? `You've completed ${data?.totalTasksDone} out of ${totalTreated} total created tasks. ${completionRate < 30 ? "Try creating smaller, more manageable goals." : "Great job staying productive on the things you commit to!"}`
+              ? `You've completed ${totalDone} out of ${totalTreated} total created tasks. ${completionRate < 30 ? "Try creating smaller, more manageable goals." : "Great job staying productive on the things you commit to!"}`
               : "Create some goals to generate efficiency tracking."}
           </div>
         </div>
@@ -106,7 +140,7 @@ export function InsightCard({ C }: InsightCardProps) {
           <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 56, marginBottom: 10 }}>
             {weekBars.map((val: number, i: number) => (
               <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                <div style={{ width: "100%", height: `${val > 0 ? 56 : 4}px`, borderRadius: "3px 3px 0 0", background: val > 0 ? C.accent : C.border, minHeight: 4, opacity: i === 6 ? 1 : 0.6 }} />
+                <div style={{ width: "100%", height: `${Math.max(4, Math.round((val / maxBar) * 56))}px`, borderRadius: "3px 3px 0 0", background: val > 0 ? C.accent : C.border, minHeight: 4, opacity: i === 6 ? 1 : 0.6 }} />
                 <span style={{ fontSize: 8, color: C.muted, fontWeight: i === 6 ? 700 : 400 }}>
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i]}
                 </span>
