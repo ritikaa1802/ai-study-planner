@@ -1,6 +1,7 @@
 import { prisma } from "../prisma";
 import { AppError } from "../utils/appError";
 import { recalculateGoalProgress, logDailyActivity } from "../services/task.service";
+import { checkAndUnlockAchievements, getUserAchievementStats } from "../services/achievement.service";
 import { createTaskSchema, createTasksBulkSchema, updateTaskSchema } from "../validators/task.validator";
 import { json, type ServerContext } from "../shared/http";
 
@@ -164,6 +165,8 @@ export const updateTask = async (ctx: ServerContext) => {
 
     if (completed === true) {
       await logDailyActivity(userId);
+      const stats = await getUserAchievementStats(userId);
+      await checkAndUnlockAchievements(userId, stats);
     }
 
     console.log("Task updated successfully", updatedTask);

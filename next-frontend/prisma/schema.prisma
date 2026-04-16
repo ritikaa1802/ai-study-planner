@@ -190,8 +190,40 @@ model User {
   userStudySessions     UserStudySession[]
   memberships           StudyCircleMembership[]
   tasks                 Task[]
+  achievements          UserAchievement[]
 
   @@map("user")
+}
+
+model AchievementDefinition {
+  id              Int               @id @default(autoincrement())
+  key             String            @unique
+  name            String
+  description     String
+  category        String
+  threshold       Int
+  points          Int
+  level           Int               @default(1)
+  isHidden        Boolean           @default(false) @map("is_hidden")
+  userAchievements UserAchievement[]
+
+  @@map("achievement_definitions")
+}
+
+model UserAchievement {
+  id             Int                   @id @default(autoincrement())
+  userId         Int                   @map("user_id")
+  achievementId  Int                   @map("achievement_id")
+  unlockedAt     DateTime              @default(now()) @map("unlocked_at")
+  progressValue  Int                   @default(0) @map("progress_value")
+  levelUnlocked  Int                   @default(1) @map("level_unlocked")
+  user           User                  @relation(fields: [userId], references: [id])
+  achievement    AchievementDefinition @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@map("user_achievements")
 }
 
 model UserStudySession {

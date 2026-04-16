@@ -1,6 +1,16 @@
 import { prisma } from "../prisma";
+import { checkAndUnlockAchievements, getUserAchievementStats } from "./achievement.service";
 
 export const recalculateGoalProgress = async (goalId: number) => {
+  const goalBefore = await prisma.goal.findUnique({
+    where: { id: goalId },
+    select: { id: true, userId: true, progress: true },
+  });
+
+  if (!goalBefore) {
+    return;
+  }
+
   const totalTasks = await prisma.task.count({
     where: { goalId },
   });
@@ -18,6 +28,11 @@ export const recalculateGoalProgress = async (goalId: number) => {
     where: { id: goalId },
     data: { progress },
   });
+
+  if (goalBefore.progress < 100 && progress >= 100) {
+    const stats = await getUserAchievementStats(goalBefore.userId);
+    await checkAndUnlockAchievements(goalBefore.userId, stats);
+  }
 };
 
 export const logDailyActivity = async (userId: number) => {
@@ -55,4 +70,7 @@ export const logDailyActivity = async (userId: number) => {
       },
     });
   }
+
+  const stats = await getUserAchievementStats(userId);
+  await checkAndUnlockAchievements(userId, stats);
 };
