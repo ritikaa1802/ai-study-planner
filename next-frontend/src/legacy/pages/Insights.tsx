@@ -202,19 +202,47 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
     data.productivity >= 70,
   ].filter(Boolean).length;
 
+  const achievementTags = [
+    { label: "Task Starter", unlocked: data.totalTasksDone >= 1 },
+    { label: "3-Day Streak", unlocked: data.activeDaysThisWeek >= 3 },
+    { label: "60% Completion", unlocked: data.completionRate >= 60 },
+    { label: "Productivity 70+", unlocked: data.productivity >= 70 },
+  ].filter((t) => t.unlocked).map((t) => t.label);
+
   return (
     <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
       <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
         {([
-          ["This Week", `${totalWkHrs}h`, "Active study time", C.green],
-          ["Productivity", `${data.productivity}%`, "Activity rating", C.green],
-          ["Tasks Done", `${data.totalTasksDone}`, "All-time", C.muted],
-          ["Achievements", `${achievements}`, "Milestones earned", C.muted],
-        ] as [string, string, string, string][]).map(([l, v, sub, sc]) => (
-          <Card key={l} C={C} style={{ flex: 1, padding: "18px 20px" }}>
-            <div style={{ fontSize: 12, color: C.muted, marginBottom: 5, fontWeight: 500 }}>{l}</div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: C.text }}>{v}</div>
-            <div style={{ fontSize: 12, color: sc, marginTop: 4 }}>{sub}</div>
+          { label: "This Week", value: `${totalWkHrs}h`, subtitle: "Active study time", subtitleColor: C.green },
+          { label: "Productivity", value: `${data.productivity}%`, subtitle: "Activity rating", subtitleColor: C.green },
+          { label: "Tasks Done", value: `${data.totalTasksDone}`, subtitle: "All-time", subtitleColor: C.muted },
+          { label: "Achievements", value: `${achievements}`, subtitle: "Milestones earned", subtitleColor: C.muted, tags: achievementTags },
+        ] as { label: string; value: string; subtitle: string; subtitleColor: string; tags?: string[] }[]).map((item) => (
+          <Card key={item.label} C={C} style={{ flex: 1, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 5, fontWeight: 500 }}>{item.label}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: C.text }}>{item.value}</div>
+            <div style={{ fontSize: 12, color: item.subtitleColor, marginTop: 4 }}>{item.subtitle}</div>
+            {item.tags && item.tags.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: C.accent,
+                      background: C.accentBg,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 999,
+                      padding: "3px 8px",
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </Card>
         ))}
       </div>
