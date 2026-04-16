@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -15,9 +15,9 @@ model CalendarEvent {
   time   String
   day    Int
   userId Int
-  user   User   @relation(fields: [userId], references: [id], map: "CalendarEvent_userId_fkey")
+  user   User   @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "CalendarEvent_userId_fkey")
+  @@index([userId])
   @@map("calendarevent")
 }
 
@@ -27,11 +27,11 @@ model CircleMessage {
   senderId    Int
   content     String
   createdAt   DateTime    @default(now())
-  studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleMessage_circleId_fkey")
-  sender      User        @relation(fields: [senderId], references: [id], map: "CircleMessage_senderId_fkey")
+  studyCircle StudyCircle @relation(fields: [circleId], references: [id])
+  sender      User        @relation(fields: [senderId], references: [id])
 
-  @@index([circleId], map: "CircleMessage_circleId_fkey")
-  @@index([senderId], map: "CircleMessage_senderId_fkey")
+  @@index([circleId])
+  @@index([senderId])
   @@map("circlemessage")
 }
 
@@ -42,9 +42,9 @@ model CircleSchedule {
   startTime   DateTime
   endTime     DateTime
   createdAt   DateTime    @default(now())
-  studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleSchedule_circleId_fkey")
+  studyCircle StudyCircle @relation(fields: [circleId], references: [id])
 
-  @@index([circleId], map: "CircleSchedule_circleId_fkey")
+  @@index([circleId])
   @@map("circleschedule")
 }
 
@@ -53,10 +53,10 @@ model DailyActivity {
   date   DateTime
   count  Int      @default(0)
   userId Int
-  user   User     @relation(fields: [userId], references: [id], map: "DailyActivity_userId_fkey")
+  user   User     @relation(fields: [userId], references: [id])
 
-  @@unique([date, userId], map: "DailyActivity_date_userId_key")
-  @@index([userId], map: "DailyActivity_userId_fkey")
+  @@unique([date, userId])
+  @@index([userId])
   @@map("dailyactivity")
 }
 
@@ -68,12 +68,12 @@ model Goal {
   userId        Int
   createdAt     DateTime     @default(now())
   studyCircleId Int?
-  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Goal_studyCircleId_fkey")
-  user          User         @relation(fields: [userId], references: [id], map: "Goal_userId_fkey")
+  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
   tasks         Task[]
 
-  @@index([studyCircleId], map: "Goal_studyCircleId_fkey")
-  @@index([userId], map: "Goal_userId_fkey")
+  @@index([studyCircleId])
+  @@index([userId])
   @@map("goal")
 }
 
@@ -87,11 +87,11 @@ model Resource {
   studyCircleId Int?
   fileType      String?
   fileUrl       String?
-  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Resource_studyCircleId_fkey")
-  uploader      User         @relation(fields: [uploaderId], references: [id], map: "Resource_uploaderId_fkey")
+  studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id])
+  uploader      User         @relation(fields: [uploaderId], references: [id])
 
-  @@index([studyCircleId], map: "Resource_studyCircleId_fkey")
-  @@index([uploaderId], map: "Resource_uploaderId_fkey")
+  @@index([studyCircleId])
+  @@index([uploaderId])
   @@map("resource")
 }
 
@@ -102,11 +102,11 @@ model SessionParticipant {
   joinedAt     DateTime     @default(now())
   lastPing     DateTime     @default(now())
   status       String       @default("ACTIVE")
-  studySession StudySession @relation(fields: [sessionId], references: [id], map: "SessionParticipant_sessionId_fkey")
-  user         User         @relation(fields: [userId], references: [id], map: "SessionParticipant_userId_fkey")
+  studySession StudySession @relation(fields: [sessionId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
-  @@unique([sessionId, userId], map: "SessionParticipant_sessionId_userId_key")
-  @@index([userId], map: "SessionParticipant_userId_fkey")
+  @@unique([sessionId, userId])
+  @@index([userId])
   @@map("sessionparticipant")
 }
 
@@ -114,7 +114,7 @@ model StudyCircle {
   id                    Int                     @id @default(autoincrement())
   name                  String
   description           String?
-  inviteCode            String                  @unique(map: "StudyCircle_inviteCode_key")
+  inviteCode            String                  @unique
   createdAt             DateTime                @default(now())
   circleMessages        CircleMessage[]
   circleSchedules       CircleSchedule[]
@@ -131,11 +131,11 @@ model StudyCircleMembership {
   joinedAt      DateTime    @default(now())
   userId        Int
   studyCircleId Int
-  studyCircle   StudyCircle @relation(fields: [studyCircleId], references: [id], map: "StudyCircleMembership_studyCircleId_fkey")
-  user          User        @relation(fields: [userId], references: [id], map: "StudyCircleMembership_userId_fkey")
+  studyCircle   StudyCircle @relation(fields: [studyCircleId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
 
-  @@unique([userId, studyCircleId], map: "StudyCircleMembership_userId_studyCircleId_key")
-  @@index([studyCircleId], map: "StudyCircleMembership_studyCircleId_fkey")
+  @@unique([userId, studyCircleId])
+  @@index([studyCircleId])
   @@map("studycirclemembership")
 }
 
@@ -146,9 +146,9 @@ model StudySession {
   duration     Int                  @default(25)
   status       String               @default("ACTIVE")
   participants SessionParticipant[]
-  studyCircle  StudyCircle          @relation(fields: [circleId], references: [id], map: "StudySession_circleId_fkey")
+  studyCircle  StudyCircle          @relation(fields: [circleId], references: [id])
 
-  @@index([circleId], map: "StudySession_circleId_fkey")
+  @@index([circleId])
   @@map("studysession")
 }
 
@@ -160,18 +160,18 @@ model Task {
   goalId    Int
   userId    Int
   createdAt DateTime @default(now())
-  goal      Goal     @relation(fields: [goalId], references: [id], map: "Task_goalId_fkey")
-  user      User     @relation(fields: [userId], references: [id], map: "Task_userId_fkey")
+  goal      Goal     @relation(fields: [goalId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
-  @@index([goalId], map: "Task_goalId_fkey")
-  @@index([userId], map: "Task_userId_fkey")
+  @@index([goalId])
+  @@index([userId])
   @@map("task")
 }
 
 model User {
   id                    Int                     @id @default(autoincrement())
   name                  String
-  email                 String                  @unique(map: "User_email_key")
+  email                 String                  @unique
   password              String
   createdAt             DateTime                @default(now())
   refreshToken          String?
@@ -200,10 +200,10 @@ model UserStudySession {
   subject  String
   duration Int
   date     DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id], map: "UserStudySession_userId_fkey")
+  user     User     @relation(fields: [userId], references: [id])
 
-  @@index([userId], map: "UserStudySession_userId_fkey")
-  @@index([date], map: "UserStudySession_date_idx")
+  @@index([userId])
+  @@index([date])
   @@map("studysession_log")
 }
 
