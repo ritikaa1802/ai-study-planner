@@ -201,7 +201,8 @@ export function AchievementsPage() {
                   const pos = index % 3;
                   const x1 = X_POSITIONS[pos];
                   const x2 = X_POSITIONS[(index + 1) % 3];
-                  const controlX = x1 < x2 ? (x1 + x2) / 2 + 10 : (x1 + x2) / 2 - 10;
+                  const bend = index % 2 === 0 ? 18 : 26;
+                  const controlX = x1 < x2 ? (x1 + x2) / 2 + bend : (x1 + x2) / 2 - bend;
                   const Icon = iconForCategory(milestone.category);
 
                   return (
@@ -283,6 +284,36 @@ export function AchievementsPage() {
                 <Zap className="h-4 w-4" />
                 Level {data?.userLevel ?? 1} · {data?.totalPoints ?? 0} total points
               </p>
+            </div>
+
+            <div className="mt-5 border-t border-violet-200/70 pt-4 dark:border-violet-800/60">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">Milestone Tasks</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {milestones.map((milestone) => {
+                  const Icon = iconForCategory(milestone.category);
+                  const stateCardClass =
+                    milestone.state === "completed"
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200"
+                      : milestone.state === "current"
+                      ? "border-orange-300 bg-orange-50 text-orange-900 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-200"
+                      : "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200";
+
+                  return (
+                    <div
+                      key={`task-${milestone.id}`}
+                      className={`flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm ${stateCardClass}`}
+                    >
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/70 dark:bg-black/20">
+                        {milestone.state === "locked" ? <Lock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{milestone.name}</p>
+                        <p className="text-[11px] font-medium uppercase tracking-wide opacity-80">{milestone.state}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
         )}
