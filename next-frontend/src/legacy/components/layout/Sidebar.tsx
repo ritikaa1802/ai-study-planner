@@ -1,5 +1,6 @@
 import { Theme, NavItem } from "../../types";
 import { ICONS, LIGHT } from "../../utils/constants";
+import Link from "next/link";
 
 function Ic({ d, size = 18, color = "currentColor", sw = 1.8 }: { d: string; size?: number; color?: string; sw?: number }) {
   return (
@@ -42,14 +43,15 @@ export function Sidebar({ nav, page, setPage, dark, setDark, C, onLogout }: Side
       {nav.map((n) => {
         const active = page === n.key;
         return (
-          <div
+          <Link
             key={n.key}
+            href={n.href || "#"}
             onClick={() => setPage(n.key)}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, background: active ? C.sidebarActive : "transparent", color: active ? C.sidebarActiveText : C.sidebarText, cursor: "pointer", fontSize: 13.5, fontWeight: active ? 600 : 400, marginBottom: 1, transition: "all 0.15s" }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, background: active ? C.sidebarActive : "transparent", color: active ? C.sidebarActiveText : C.sidebarText, cursor: "pointer", fontSize: 13.5, fontWeight: active ? 600 : 400, marginBottom: 1, transition: "all 0.15s", textDecoration: "none" }}
           >
             <Ic d={n.icon} size={16} color={active ? "#fff" : "rgba(255,255,255,0.55)"} />
             {n.key}
-          </div>
+          </Link>
         );
       })}
 

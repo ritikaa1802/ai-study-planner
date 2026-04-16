@@ -82,6 +82,7 @@ export interface Notification {
 export interface NavItem {
   key: string;
   icon: string;
+  href?: string;
 }
 
 export type PageKey =
@@ -90,6 +91,7 @@ export type PageKey =
   | "Calendar"
   | "Focus Mode"
   | "Analytics"
+  | "Achievements"
   | "AI Planner"
   | "Resources"
   | "Study Circle"
