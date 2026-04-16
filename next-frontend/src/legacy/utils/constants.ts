@@ -84,7 +84,6 @@ export const NAV: NavItem[] = [
   { key: "Calendar", href: "/calendar", icon: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" },
   { key: "Focus Mode", href: "/pomodoro", icon: "M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" },
   { key: "Analytics", href: "/analytics", icon: "M3 3v18h18 M18 17V9 M13 17V5 M8 17v-3" },
-  { key: "Achievements", href: "/achievements", icon: "M7.21 15L2.66 7.14a2 2 0 01.13-2.2L4.4 3h15.2l1.61 1.94a2 2 0 01.13 2.2L16.79 15M11 12h2 M7.21 15H16.8L12 22l-4.79-7z" },
   { key: "AI Planner", href: "/ai-planner", icon: "M13 2L3 14h8l-1 8 11-14h-8l1-6z" },
   { key: "Resources", href: "/resources", icon: "M4 19.5A2.5 2.5 0 016.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" },
   { key: "Study Circle", href: "/study-circle", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75" },

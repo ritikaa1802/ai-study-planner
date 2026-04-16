@@ -91,7 +91,6 @@ export type PageKey =
   | "Calendar"
   | "Focus Mode"
   | "Analytics"
-  | "Achievements"
   | "AI Planner"
   | "Resources"
   | "Study Circle"
