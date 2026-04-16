@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Brain,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import type { AchievementsApiResponse } from "../../types/achievements";
 import { normalizeCategory } from "../../types/achievements";
+import { useThemeShell } from "@/next/ThemeShellContext";
+import type { Theme } from "@/legacy/types";
 
 type MilestoneState = "completed" | "current" | "locked";
 
@@ -37,16 +39,59 @@ const iconForCategory = (category: string) => {
   return Clock3;
 };
 
-const stoneClassesByState: Record<MilestoneState, string> = {
-  completed:
-    "border-emerald-300 bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-[0_8px_18px_rgba(16,185,129,0.35)]",
-  current:
-    "border-orange-200 bg-gradient-to-br from-orange-400 to-amber-500 text-white shadow-[0_0_0_8px_rgba(251,146,60,0.18),0_12px_25px_rgba(249,115,22,0.45)] animate-pulse",
-  locked:
-    "border-slate-400 bg-gradient-to-br from-slate-300 to-slate-400 text-slate-100 dark:border-slate-600 dark:from-slate-600 dark:to-slate-700",
+const stoneStyleByState = (state: MilestoneState, C: Theme): CSSProperties => {
+  if (state === "completed") {
+    return {
+      borderColor: C.green,
+      background: `linear-gradient(145deg, ${C.green}, ${C.accent})`,
+      color: "#ffffff",
+      boxShadow: `0 8px 18px ${C.green}66`,
+    };
+  }
+
+  if (state === "current") {
+    return {
+      borderColor: C.orange,
+      background: `linear-gradient(145deg, ${C.orange}, ${C.amber})`,
+      color: "#ffffff",
+      boxShadow: `0 0 0 8px ${C.accentBg}, 0 12px 24px ${C.orange}99`,
+    };
+  }
+
+  return {
+    borderColor: C.dot2,
+    background: `linear-gradient(145deg, ${C.dot1}, ${C.dot3})`,
+    color: C.white,
+    boxShadow: "none",
+  };
+};
+
+const taskStoneStyleByState = (state: MilestoneState, C: Theme): CSSProperties => {
+  if (state === "completed") {
+    return {
+      borderColor: `${C.green}66`,
+      background: `${C.green}1A`,
+      color: C.text,
+    };
+  }
+
+  if (state === "current") {
+    return {
+      borderColor: `${C.orange}66`,
+      background: `${C.orange}1A`,
+      color: C.text,
+    };
+  }
+
+  return {
+    borderColor: C.border,
+    background: C.inputBg,
+    color: C.subtext,
+  };
 };
 
 export function AchievementsPage() {
+  const { C } = useThemeShell();
   const [data, setData] = useState<AchievementsApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,16 +208,26 @@ export function AchievementsPage() {
   const hasMilestones = milestones.length > 0;
 
   return (
-    <main className="h-full overflow-y-auto bg-gradient-to-b from-[#d8cbff] via-[#c8d7ff] to-[#d6c5ff] p-4 pb-10 md:p-8 dark:from-[#1b1540] dark:via-[#1a2551] dark:to-[#1f1843]">
+    <main
+      className="h-full overflow-y-auto p-4 pb-10 md:p-8"
+      style={{
+        background: `linear-gradient(180deg, ${C.bg} 0%, ${C.accentBg} 55%, ${C.bg} 100%)`,
+      }}
+    >
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-violet-950 dark:text-violet-100">Achievement Journey</h1>
-            <p className="text-sm text-violet-800 dark:text-violet-300">Complete milestones on your learning path, one stone at a time.</p>
+            <h1 className="text-3xl font-black tracking-tight" style={{ color: C.text }}>Achievement Path</h1>
+            <p className="text-sm" style={{ color: C.subtext }}>Complete each milestone to unlock the next.</p>
           </div>
           <button
             onClick={() => void fetchAchievements(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-violet-300 bg-white/70 px-3 py-2 text-sm font-semibold text-violet-900 backdrop-blur hover:bg-white dark:border-violet-700 dark:bg-violet-900/50 dark:text-violet-100 dark:hover:bg-violet-800/70"
+            className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold backdrop-blur"
+            style={{
+              borderColor: C.border,
+              background: C.card,
+              color: C.text,
+            }}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -180,21 +235,30 @@ export function AchievementsPage() {
         </section>
 
         {error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
+          <div
+            className="rounded-lg border px-4 py-3 text-sm"
+            style={{ borderColor: C.red, background: `${C.red}22`, color: C.red }}
+          >
             {error}
           </div>
         )}
 
         {loading ? (
-          <section className="rounded-3xl border border-violet-200/70 bg-white/60 p-5 backdrop-blur dark:border-violet-900/50 dark:bg-violet-950/35">
+          <section
+            className="rounded-3xl border p-5 backdrop-blur"
+            style={{ borderColor: C.border, background: C.card }}
+          >
             <div className="space-y-4">
               {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="mx-auto h-20 w-20 animate-pulse rounded-full bg-violet-200 dark:bg-violet-800/60" />
+                <div key={i} className="mx-auto h-20 w-20 animate-pulse rounded-full" style={{ background: C.dot2 }} />
               ))}
             </div>
           </section>
         ) : (
-          <section className="rounded-3xl border border-violet-200/70 bg-white/55 p-5 backdrop-blur-sm dark:border-violet-900/50 dark:bg-violet-950/35">
+          <section
+            className="rounded-3xl border p-5 backdrop-blur-sm"
+            style={{ borderColor: C.border, background: C.card }}
+          >
             <div className="relative">
               <div className="space-y-8">
                 {milestones.map((milestone, index) => {
@@ -213,14 +277,14 @@ export function AchievementsPage() {
                             <path
                               d={`M ${x1} 10 Q ${controlX} 54 ${x2} 98`}
                               fill="none"
-                              stroke="#7c3aed"
+                              stroke={C.accentBar}
                               strokeWidth="2.2"
                               strokeDasharray="5 7"
-                              opacity="0.55"
+                              opacity="0.7"
                             />
                           </svg>
                           <svg className="absolute left-1/2 top-14 h-24 w-8 -translate-x-1/2 md:hidden" viewBox="0 0 32 100" preserveAspectRatio="none" aria-hidden>
-                            <path d="M 16 8 Q 16 52 16 96" fill="none" stroke="#7c3aed" strokeWidth="2.2" strokeDasharray="5 7" opacity="0.55" />
+                            <path d="M 16 8 Q 16 52 16 96" fill="none" stroke={C.accentBar} strokeWidth="2.2" strokeDasharray="5 7" opacity="0.7" />
                           </svg>
                         </>
                       )}
@@ -229,7 +293,8 @@ export function AchievementsPage() {
                         <div className="group flex flex-col items-center">
                           <button
                             type="button"
-                            className={`h-20 w-20 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 ${stoneClassesByState[milestone.state]}`}
+                            className={`h-20 w-20 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 ${milestone.state === "current" ? "animate-pulse" : ""}`}
+                            style={stoneStyleByState(milestone.state, C)}
                             title={`${milestone.name} (${milestone.state})`}
                           >
                             <span className="sr-only">{milestone.name}</span>
@@ -244,8 +309,8 @@ export function AchievementsPage() {
                             </span>
                           </button>
                           <div className="mt-2 max-w-[10rem] text-center">
-                            <p className="truncate text-xs font-semibold text-violet-950 dark:text-violet-100">{milestone.name}</p>
-                            <p className="text-[11px] text-violet-800 dark:text-violet-300">{milestone.points} pts</p>
+                            <p className="truncate text-xs font-semibold" style={{ color: C.text }}>{milestone.name}</p>
+                            <p className="text-[11px]" style={{ color: C.subtext }}>{milestone.points} pts</p>
                           </div>
                         </div>
                       </div>
@@ -258,52 +323,50 @@ export function AchievementsPage() {
         )}
 
         {!loading && hasMilestones && (
-          <section className="rounded-2xl border border-violet-200/80 bg-white/70 p-5 backdrop-blur-sm dark:border-violet-900/60 dark:bg-violet-950/45">
-            <div className="mb-4 flex items-center gap-2 text-violet-950 dark:text-violet-100">
+          <section
+            className="rounded-2xl border p-5 backdrop-blur-sm"
+            style={{ borderColor: C.border, background: C.card }}
+          >
+            <div className="mb-4 flex items-center gap-2" style={{ color: C.text }}>
               <Trophy className="h-5 w-5" />
               <h2 className="text-lg font-bold">Progress Summary</h2>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/30">
-                <p className="text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-300">Completed</p>
-                <p className="mt-1 text-2xl font-black text-emerald-800 dark:text-emerald-200">{summary.completed}</p>
+              <div className="rounded-xl border p-3" style={{ borderColor: `${C.green}66`, background: `${C.green}1A` }}>
+                <p className="text-xs font-semibold uppercase" style={{ color: C.green }}>Completed</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: C.green }}>{summary.completed}</p>
               </div>
-              <div className="rounded-xl border border-orange-300 bg-orange-50 p-3 dark:border-orange-800 dark:bg-orange-950/30">
-                <p className="text-xs font-semibold uppercase text-orange-700 dark:text-orange-300">In Progress</p>
-                <p className="mt-1 text-2xl font-black text-orange-800 dark:text-orange-200">{summary.inProgress}</p>
+              <div className="rounded-xl border p-3" style={{ borderColor: `${C.orange}66`, background: `${C.orange}1A` }}>
+                <p className="text-xs font-semibold uppercase" style={{ color: C.orange }}>In Progress</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: C.orange }}>{summary.inProgress}</p>
               </div>
-              <div className="rounded-xl border border-slate-300 bg-slate-100 p-3 dark:border-slate-700 dark:bg-slate-900/70">
-                <p className="text-xs font-semibold uppercase text-slate-600 dark:text-slate-300">Locked</p>
-                <p className="mt-1 text-2xl font-black text-slate-700 dark:text-slate-100">{summary.locked}</p>
+              <div className="rounded-xl border p-3" style={{ borderColor: C.border, background: C.inputBg }}>
+                <p className="text-xs font-semibold uppercase" style={{ color: C.muted }}>Locked</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: C.subtext }}>{summary.locked}</p>
               </div>
             </div>
 
-            <div className="mt-4 rounded-xl bg-violet-100/80 p-3 text-sm text-violet-900 dark:bg-violet-900/40 dark:text-violet-100">
+            <div className="mt-4 rounded-xl p-3 text-sm" style={{ background: C.accentBg, color: C.text }}>
               <p className="inline-flex items-center gap-2 font-medium">
                 <Zap className="h-4 w-4" />
                 Level {data?.userLevel ?? 1} · {data?.totalPoints ?? 0} total points
               </p>
             </div>
 
-            <div className="mt-5 border-t border-violet-200/70 pt-4 dark:border-violet-800/60">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">Milestone Tasks</p>
+            <div className="mt-5 border-t pt-4" style={{ borderColor: C.border }}>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: C.subtext }}>Milestone Tasks</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {milestones.map((milestone) => {
                   const Icon = iconForCategory(milestone.category);
-                  const stateCardClass =
-                    milestone.state === "completed"
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200"
-                      : milestone.state === "current"
-                      ? "border-orange-300 bg-orange-50 text-orange-900 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-200"
-                      : "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200";
 
                   return (
                     <div
                       key={`task-${milestone.id}`}
-                      className={`flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm ${stateCardClass}`}
+                      className="flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm"
+                      style={taskStoneStyleByState(milestone.state, C)}
                     >
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white/70 dark:bg-black/20">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ background: C.card }}>
                         {milestone.state === "locked" ? <Lock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                       </span>
                       <div className="min-w-0">
@@ -319,7 +382,10 @@ export function AchievementsPage() {
         )}
 
         {!loading && !error && !hasMilestones && (
-          <div className="rounded-xl border border-dashed border-violet-300 bg-white/70 p-6 text-sm text-violet-800 dark:border-violet-700 dark:bg-violet-950/35 dark:text-violet-200">
+          <div
+            className="rounded-xl border border-dashed p-6 text-sm"
+            style={{ borderColor: C.border, background: C.card, color: C.subtext }}
+          >
             No milestones available yet. Complete your first task or focus session to start your journey.
           </div>
         )}
