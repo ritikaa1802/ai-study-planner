@@ -42,26 +42,26 @@ const iconForCategory = (category: string) => {
 const stoneStyleByState = (state: MilestoneState, C: Theme): CSSProperties => {
   if (state === "completed") {
     return {
-      borderColor: C.green,
-      background: `linear-gradient(145deg, ${C.green}, ${C.accent})`,
+      borderColor: C.accentBar,
+      background: `linear-gradient(145deg, ${C.accentLight}, ${C.accentBar})`,
       color: "#ffffff",
-      boxShadow: `0 8px 18px ${C.green}66`,
+      boxShadow: `0 8px 18px ${C.accentBar}55`,
     };
   }
 
   if (state === "current") {
     return {
-      borderColor: C.orange,
-      background: `linear-gradient(145deg, ${C.orange}, ${C.amber})`,
+      borderColor: C.accent,
+      background: `linear-gradient(145deg, ${C.accent}, ${C.accentBar})`,
       color: "#ffffff",
-      boxShadow: `0 0 0 8px ${C.accentBg}, 0 12px 24px ${C.orange}99`,
+      boxShadow: `0 0 0 8px ${C.accentBg}, 0 12px 24px ${C.accent}88`,
     };
   }
 
   return {
-    borderColor: C.dot2,
-    background: `linear-gradient(145deg, ${C.dot1}, ${C.dot3})`,
-    color: C.white,
+    borderColor: C.dot3,
+    background: `linear-gradient(145deg, ${C.dot1}, ${C.dot2})`,
+    color: C.subtext,
     boxShadow: "none",
   };
 };
@@ -260,33 +260,33 @@ export function AchievementsPage() {
             style={{ borderColor: C.border, background: C.card }}
           >
             <div className="relative">
-              <div className="space-y-12 md:space-y-14">
+              <div className="space-y-14 md:space-y-16">
                 {milestones.map((milestone, index) => {
                   const pos = index % 3;
                   const x1 = X_POSITIONS[pos];
                   const x2 = X_POSITIONS[(index + 1) % 3];
-                  const bend = index % 2 === 0 ? 30 : 36;
+                  const bend = index % 2 === 0 ? 30 : 38;
                   const controlX = x1 < x2 ? (x1 + x2) / 2 + bend : (x1 + x2) / 2 - bend;
                   const controlY = index % 2 === 0 ? 38 : 66;
                   const Icon = iconForCategory(milestone.category);
 
                   return (
-                    <div key={milestone.id} className="relative h-36 md:h-40">
+                    <div key={milestone.id} className="relative h-40 md:h-44">
                       {index < milestones.length - 1 && (
                         <>
-                          <svg className="absolute left-0 top-[4.25rem] hidden h-32 w-full md:block" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                          <svg className="absolute left-0 top-[5.25rem] hidden h-36 w-full md:block" viewBox="0 0 100 120" preserveAspectRatio="none" aria-hidden>
                             <path
-                              d={`M ${x1} 8 Q ${controlX} ${controlY} ${x2} 96`}
+                              d={`M ${x1} 8 Q ${controlX} ${Math.min(100, controlY + 10)} ${x2} 112`}
                               fill="none"
                               stroke={C.accentBar}
-                              strokeWidth="2.8"
-                              strokeDasharray="4 8"
+                              strokeWidth="1.3"
+                              strokeDasharray="2.5 6"
                               strokeLinecap="round"
-                              opacity="0.82"
+                              opacity="0.8"
                             />
                           </svg>
-                          <svg className="absolute left-1/2 top-[4.25rem] h-32 w-10 -translate-x-1/2 md:hidden" viewBox="0 0 32 100" preserveAspectRatio="none" aria-hidden>
-                            <path d="M 16 6 Q 16 50 16 96" fill="none" stroke={C.accentBar} strokeWidth="2.8" strokeDasharray="4 8" strokeLinecap="round" opacity="0.82" />
+                          <svg className="absolute left-1/2 top-[5.25rem] h-36 w-10 -translate-x-1/2 md:hidden" viewBox="0 0 32 120" preserveAspectRatio="none" aria-hidden>
+                            <path d="M 16 8 Q 16 58 16 112" fill="none" stroke={C.accentBar} strokeWidth="1.3" strokeDasharray="2.5 6" strokeLinecap="round" opacity="0.8" />
                           </svg>
                         </>
                       )}
@@ -295,25 +295,23 @@ export function AchievementsPage() {
                         <div className="group flex flex-col items-center">
                           <button
                             type="button"
-                            className={`h-20 w-20 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 md:h-24 md:w-24 ${milestone.state === "current" ? "animate-pulse" : ""}`}
+                            className={`relative h-24 w-24 rounded-full border-[3px] p-2 transition-transform duration-200 group-hover:scale-105 md:h-28 md:w-28 ${milestone.state === "current" ? "animate-pulse" : ""}`}
                             style={stoneStyleByState(milestone.state, C)}
                             title={`${milestone.name} (${milestone.state})`}
                           >
                             <span className="sr-only">{milestone.name}</span>
-                            <span className="flex h-full w-full items-center justify-center">
+                            <span className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-center">
                               {milestone.state === "completed" ? (
-                                <CheckCircle2 className="h-8 w-8 md:h-9 md:w-9" />
+                                <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5" />
                               ) : milestone.state === "locked" ? (
-                                <Lock className="h-8 w-8 md:h-9 md:w-9" />
+                                <Lock className="h-4 w-4 md:h-5 md:w-5" />
                               ) : (
-                                <Icon className="h-8 w-8 md:h-9 md:w-9" />
+                                <Icon className="h-4 w-4 md:h-5 md:w-5" />
                               )}
+                              <span className="line-clamp-2 px-1 text-[10px] font-semibold leading-tight md:text-[11px]">{milestone.name}</span>
+                              <span className="text-[9px] leading-none opacity-90 md:text-[10px]">{milestone.points} pts</span>
                             </span>
                           </button>
-                          <div className="mt-3 max-w-[10rem] text-center">
-                            <p className="truncate text-xs font-semibold" style={{ color: C.text }}>{milestone.name}</p>
-                            <p className="text-[11px]" style={{ color: C.subtext }}>{milestone.points} pts</p>
-                          </div>
                         </div>
                       </div>
                     </div>
