@@ -172,7 +172,7 @@ interface InsightsProps {
 }
 
 export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
-  const { data, loading } = useAnalytics();
+  const { data, loading, error } = useAnalytics();
   const [ck, setCk] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -180,6 +180,25 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
 
   if (loading || !data) {
     return <div style={{ padding: "24px 28px", color: C.text }}>Loading insights...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "24px 28px", color: C.text }}>
+        <div
+          style={{
+            border: `1px solid ${C.border}`,
+            background: C.card,
+            borderRadius: 12,
+            padding: "14px 16px",
+            maxWidth: 620,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Analytics is temporarily unavailable</div>
+          <div style={{ fontSize: 13, color: C.muted }}>{error}</div>
+        </div>
+      </div>
+    );
   }
 
   const wk = data.wk;

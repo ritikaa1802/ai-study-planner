@@ -72,13 +72,19 @@ export const getAnalytics = async (ctx: ServerContext) => {
       where: { userId },
     });
 
-    const userTaskTotals = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        lifetimeTasksCreated: true,
-        lifetimeTasksCompleted: true,
-      },
-    });
+    let userTaskTotals: { lifetimeTasksCreated: number | null; lifetimeTasksCompleted: number | null } | null = null;
+    try {
+      userTaskTotals = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          lifetimeTasksCreated: true,
+          lifetimeTasksCompleted: true,
+        },
+      });
+    } catch (error) {
+      // Allow analytics to keep working if production DB schema is behind recent Prisma fields.
+      console.warn("Analytics fallback: lifetime task counters unavailable", error);
+    }
 
     const totalTasksDone = Math.max(userTaskTotals?.lifetimeTasksCompleted ?? 0, currentTasksDone);
     const totalTasksCreated = Math.max(userTaskTotals?.lifetimeTasksCreated ?? 0, currentTasksCreated);
