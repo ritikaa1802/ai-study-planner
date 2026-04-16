@@ -211,10 +211,10 @@ export function AchievementsPage() {
     <main
       className="h-full overflow-y-auto p-4 pb-10 md:p-8"
       style={{
-        background: `linear-gradient(180deg, ${C.bg} 0%, ${C.accentBg} 55%, ${C.bg} 100%)`,
+        background: `linear-gradient(180deg, ${C.bg} 0%, ${C.accentBg} 50%, ${C.bg} 100%)`,
       }}
     >
-      <div className="mx-auto w-full max-w-5xl space-y-8 md:space-y-10">
+      <div className="mx-auto w-full max-w-4xl space-y-8 md:space-y-10">
         <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-black tracking-tight" style={{ color: C.text }}>Achievement Path</h1>
@@ -245,18 +245,18 @@ export function AchievementsPage() {
 
         {loading ? (
           <section
-            className="rounded-3xl border p-5 backdrop-blur"
+            className="rounded-3xl border p-6 backdrop-blur"
             style={{ borderColor: C.border, background: C.card }}
           >
-            <div className="space-y-4">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="mx-auto h-20 w-20 animate-pulse rounded-full" style={{ background: C.dot2 }} />
+            <div className="space-y-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="mx-auto h-24 w-24 animate-pulse rounded-full" style={{ background: C.dot2 }} />
               ))}
             </div>
           </section>
         ) : (
           <section
-            className="rounded-3xl border px-5 py-7 backdrop-blur-sm md:px-8 md:py-9"
+            className="rounded-3xl border px-5 py-7 backdrop-blur-sm md:px-8 md:py-10"
             style={{ borderColor: C.border, background: C.card }}
           >
             <div className="relative">
@@ -265,10 +265,12 @@ export function AchievementsPage() {
                   const pos = index % 3;
                   const x1 = X_POSITIONS[pos];
                   const x2 = X_POSITIONS[(index + 1) % 3];
-                  const bend = index % 2 === 0 ? 30 : 38;
+                  const bend = index % 2 === 0 ? 34 : 40;
                   const controlX = x1 < x2 ? (x1 + x2) / 2 + bend : (x1 + x2) / 2 - bend;
-                  const controlY = index % 2 === 0 ? 38 : 66;
+                  const controlY = index % 2 === 0 ? 44 : 76;
                   const Icon = iconForCategory(milestone.category);
+                  const statusDotColor =
+                    milestone.state === "completed" ? C.green : milestone.state === "current" ? C.orange : C.muted;
 
                   return (
                     <div key={milestone.id} className="relative h-40 md:h-44">
@@ -279,14 +281,14 @@ export function AchievementsPage() {
                               d={`M ${x1} 8 Q ${controlX} ${Math.min(100, controlY + 10)} ${x2} 112`}
                               fill="none"
                               stroke={C.accentBar}
-                              strokeWidth="1.3"
-                              strokeDasharray="2.5 6"
+                              strokeWidth="1.6"
+                              strokeDasharray="3 7"
                               strokeLinecap="round"
-                              opacity="0.8"
+                              opacity="0.65"
                             />
                           </svg>
                           <svg className="absolute left-1/2 top-[5.25rem] h-36 w-10 -translate-x-1/2 md:hidden" viewBox="0 0 32 120" preserveAspectRatio="none" aria-hidden>
-                            <path d="M 16 8 Q 16 58 16 112" fill="none" stroke={C.accentBar} strokeWidth="1.3" strokeDasharray="2.5 6" strokeLinecap="round" opacity="0.8" />
+                            <path d="M 16 8 Q 16 58 16 112" fill="none" stroke={C.accentBar} strokeWidth="1.6" strokeDasharray="3 7" strokeLinecap="round" opacity="0.65" />
                           </svg>
                         </>
                       )}
@@ -295,12 +297,12 @@ export function AchievementsPage() {
                         <div className="group flex flex-col items-center">
                           <button
                             type="button"
-                            className={`relative h-24 w-24 rounded-full border-[3px] p-2 transition-transform duration-200 group-hover:scale-105 md:h-28 md:w-28 ${milestone.state === "current" ? "animate-pulse" : ""}`}
+                            className={`relative h-24 w-24 rounded-full border-[3px] transition-transform duration-200 group-hover:scale-105 md:h-28 md:w-28 ${milestone.state === "current" ? "animate-pulse" : ""}`}
                             style={stoneStyleByState(milestone.state, C)}
                             title={`${milestone.name} (${milestone.state})`}
                           >
                             <span className="sr-only">{milestone.name}</span>
-                            <span className="flex h-full w-full flex-col items-center justify-center gap-0.5 text-center">
+                            <span className="flex h-full w-full flex-col items-center justify-center gap-1 px-2 text-center">
                               {milestone.state === "completed" ? (
                                 <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5" />
                               ) : milestone.state === "locked" ? (
@@ -308,10 +310,24 @@ export function AchievementsPage() {
                               ) : (
                                 <Icon className="h-4 w-4 md:h-5 md:w-5" />
                               )}
-                              <span className="line-clamp-2 px-1 text-[10px] font-semibold leading-tight md:text-[11px]">{milestone.name}</span>
-                              <span className="text-[9px] leading-none opacity-90 md:text-[10px]">{milestone.points} pts</span>
                             </span>
                           </button>
+
+                          <div
+                            className="mt-3 w-[8.5rem] rounded-full border px-3 py-1.5 text-center"
+                            style={{ borderColor: C.border, background: C.inputBg }}
+                          >
+                            <p
+                              className="truncate text-xs font-semibold"
+                              style={{ color: C.text }}
+                            >
+                              {milestone.name}
+                            </p>
+                            <div className="mt-1 flex items-center justify-center gap-1">
+                              <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: statusDotColor }} />
+                              <p className="text-[10px]" style={{ color: C.subtext }}>{milestone.points} pts</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -333,13 +349,13 @@ export function AchievementsPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border p-3" style={{ borderColor: `${C.green}66`, background: `${C.green}1A` }}>
-                <p className="text-xs font-semibold uppercase" style={{ color: C.green }}>Completed</p>
-                <p className="mt-1 text-2xl font-black" style={{ color: C.green }}>{summary.completed}</p>
+              <div className="rounded-xl border p-3" style={{ borderColor: C.border, background: C.inputBg }}>
+                <p className="text-xs font-semibold uppercase" style={{ color: C.subtext }}>Completed</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: C.text }}>{summary.completed}</p>
               </div>
-              <div className="rounded-xl border p-3" style={{ borderColor: `${C.orange}66`, background: `${C.orange}1A` }}>
-                <p className="text-xs font-semibold uppercase" style={{ color: C.orange }}>In Progress</p>
-                <p className="mt-1 text-2xl font-black" style={{ color: C.orange }}>{summary.inProgress}</p>
+              <div className="rounded-xl border p-3" style={{ borderColor: C.border, background: C.inputBg }}>
+                <p className="text-xs font-semibold uppercase" style={{ color: C.subtext }}>In Progress</p>
+                <p className="mt-1 text-2xl font-black" style={{ color: C.text }}>{summary.inProgress}</p>
               </div>
               <div className="rounded-xl border p-3" style={{ borderColor: C.border, background: C.inputBg }}>
                 <p className="text-xs font-semibold uppercase" style={{ color: C.muted }}>Locked</p>
