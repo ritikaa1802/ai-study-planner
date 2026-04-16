@@ -84,7 +84,7 @@ export function AchievementsPage() {
   const hasUnlocked = useMemo(() => (data?.totalUnlockedCount ?? 0) > 0, [data]);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 md:p-8 dark:bg-slate-950">
+    <main className="h-full bg-slate-50 p-4 pb-8 md:p-8 dark:bg-slate-950">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>

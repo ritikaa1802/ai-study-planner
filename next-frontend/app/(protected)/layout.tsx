@@ -94,6 +94,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <AuthProvider key={providerKey}>
       <ThemeShellProvider value={{ C, dark, setDark }}>
         <div
+          className={dark ? "dark" : ""}
           style={{
             display: "flex",
             height: "100vh",
@@ -107,7 +108,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <Sidebar nav={NAV} page={page} setPage={navigateToPage} dark={dark} setDark={setDark} C={C} onLogout={handleLogout} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <Navbar C={C} />
-            <div style={{ flex: 1, overflow: "hidden" }}>{children}</div>
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>{children}</div>
           </div>
         </div>
       </ThemeShellProvider>
