@@ -84,16 +84,16 @@ export function AchievementsPage() {
   const hasUnlocked = useMemo(() => (data?.totalUnlockedCount ?? 0) > 0, [data]);
 
   return (
-    <main className="h-full bg-slate-50 p-4 pb-8 md:p-8 dark:bg-slate-950">
+    <main className="h-full bg-gradient-to-b from-violet-50 via-indigo-50/50 to-violet-50 p-4 pb-8 md:p-8 dark:from-[#0e1230] dark:via-[#11183a] dark:to-[#0d1230]">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Achievements</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">Milestone-based progress, unlocks, and next targets.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-violet-950 dark:text-violet-100">Achievements</h1>
+            <p className="text-sm text-violet-800 dark:text-violet-300">Milestone-based progress, unlocks, and next targets.</p>
           </div>
           <button
             onClick={() => void fetchAchievements(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-2 rounded-xl border border-violet-300 bg-violet-100 px-3 py-2 text-sm font-medium text-violet-800 hover:bg-violet-200 dark:border-violet-700 dark:bg-violet-900/50 dark:text-violet-100 dark:hover:bg-violet-800/70"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             Refresh
