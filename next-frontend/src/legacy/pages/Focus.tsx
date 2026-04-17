@@ -211,8 +211,8 @@ export function Focus({ C }: FocusProps) {
   const pct = ((currentTotal - time) / currentTotal) * 100;
 
   return (
-    <div style={{ padding: 28, height: "100%", overflowY: "auto", display: "flex", flexDirection: "column", alignItems: "center", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+    <div className="box-border flex h-full flex-col items-center overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7" style={{}}>
+      <div className="mb-5 flex flex-wrap justify-center gap-2 sm:gap-3">
         {(["focus", "break"] as const).map((m) => (
           <button key={m} onClick={() => switchMode(m)}
             style={{ padding: "9px 28px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, background: mode === m ? C.accent : C.card, color: mode === m ? "#fff" : C.muted, boxShadow: "0 1px 4px rgba(0,0,0,0.1)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -262,7 +262,7 @@ export function Focus({ C }: FocusProps) {
         </div>
       )}
 
-      <Card C={C} style={{ width: 460, marginBottom: 20 }}>
+      <Card C={C} style={{ width: "100%", maxWidth: 460, marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "center", padding: "32px 0 28px" }}>
           <div style={{ position: "relative", width: 220, height: 220 }}>
             <svg viewBox="0 0 220 220" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
@@ -317,13 +317,13 @@ export function Focus({ C }: FocusProps) {
         {isSavingSession && <div style={{ textAlign: "center", fontSize: 12, color: C.muted, marginTop: 8 }}>Saving session...</div>}
       </Card>
 
-      <div style={{ display: "flex", gap: 14, width: 460 }}>
+      <div className="grid w-full max-w-[460px] grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {([
           ["Completed Today", sessions],
           ["Total Focus Time", `${Math.floor(completedMinutesToday / 60)}h ${completedMinutesToday % 60}m`],
           ["Day Streak", user.streak],
         ] as [string, string | number][]).map(([l, v]) => (
-          <Card key={l} C={C} style={{ flex: 1, textAlign: "center", padding: "16px 12px" }}>
+          <Card key={l} C={C} style={{ textAlign: "center", padding: "16px 12px" }}>
             <div style={{ fontSize: 24, fontWeight: 700, color: C.statNum }}>{v}</div>
             <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{l}</div>
           </Card>

@@ -99,10 +99,10 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
 
 
   return (
-    <div style={{ padding: "24px 28px", overflowY: "auto", height: "100%", boxSizing: "border-box" }}>
+    <div className="h-full overflow-y-auto box-border p-3 sm:p-4 md:p-6 lg:p-7" style={{}}>
       {/* Stats */}
-      <div style={{ display: "flex", gap: 16, marginBottom: 22 }}>
-        <Card C={C} style={{ flex: 1.3, padding: "20px 22px" }}>
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 md:gap-4">
+        <Card C={C} style={{ padding: "20px 22px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>Lifetime Goals</div>
             <Ic d={ICONS.target} size={18} color={C.accent} />
@@ -123,7 +123,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           [`${completed}`, "Completed", ICONS.trend],
           [`${avgProgress}%`, "Avg Progress", ICONS.analytics],
         ] as [string, string, string][]).map(([v, l, icon]) => (
-          <Card key={l} C={C} style={{ flex: 1, padding: "20px 22px" }}>
+          <Card key={l} C={C} style={{ padding: "20px 22px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 13, color: C.muted, marginBottom: 8, fontWeight: 500 }}>{l}</div>
@@ -137,7 +137,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
         ))}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+      <div className="mb-4 flex justify-end">
         <button onClick={() => setShowModal(true)} style={{ display: "flex", alignItems: "center", gap: 8, background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
           <Ic d={ICONS.plus} size={16} color="#fff" sw={2.5} /> New Goal
         </button>
@@ -151,12 +151,12 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
 
         return (
           <Card key={goal.id} C={C} style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2" style={{}}>
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" style={{}}>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: C.text }}>{goal.title}</h3>
                 <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: typeColor.bg, color: typeColor.color, whiteSpace: "nowrap" }}>{typeLabel}</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
                 <button onClick={() => setExpandedId(isExpanded ? null : goal.id)} style={{ background: "none", border: "none", color: C.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   {isExpanded ? "Hide Tasks ▲" : "View Tasks ▼"}
                 </button>
@@ -180,7 +180,8 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
                 {goal.tasks.length === 0 && <p style={{ fontSize: 13, color: C.muted, margin: "0 0 12px", fontStyle: "italic" }}>No tasks yet. Add one below.</p>}
                 {goal.tasks.map((task, idx) => (
                   <div key={task.id} onClick={() => toggleTask(goal.id, task.id)}
-                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, marginBottom: 6, cursor: "pointer", background: task.done ? C.accentBg : C.bg, border: `1px solid ${task.done ? C.accent + "44" : C.border}`, transition: "all 0.2s" }}>
+                    className="mb-2 flex flex-wrap items-center gap-2 sm:gap-3"
+                    style={{ padding: "9px 12px", borderRadius: 10, cursor: "pointer", background: task.done ? C.accentBg : C.bg, border: `1px solid ${task.done ? C.accent + "44" : C.border}`, transition: "all 0.2s" }}>
                     <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${task.done ? C.accent : C.border}`, background: task.done ? C.accent : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
                       {task.done && <Ic d={ICONS.check} size={12} color="#fff" sw={3} />}
                     </div>
@@ -228,7 +229,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
                         localStorage.setItem("focus_autostart", "1");
                         onNavigateToPomodoro?.(task.focusMinutes ?? undefined);
                       }}
-                      style={{ background: C.accentBg, border: "none", color: C.accent, fontSize: 12, fontWeight: 700, cursor: "pointer", borderRadius: 8, padding: "6px 8px" }}
+                      style={{ background: C.accentBg, border: "none", color: C.accent, fontSize: 12, fontWeight: 700, cursor: "pointer", borderRadius: 8, padding: "6px 8px", marginLeft: "auto" }}
                     >
                       Start Timer
                     </button>
@@ -258,12 +259,12 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
                     </button>
                   </div>
                 ))}
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <div className="mt-2 flex flex-wrap gap-2">
                   <input value={newTaskText[goal.id] || ""} onChange={(e) => setNewTaskText((t) => ({ ...t, [goal.id]: e.target.value }))} onKeyDown={(e) => e.key === "Enter" && handleAddTask(goal.id)}
-                    placeholder="Add a new task..." style={{ flex: 1, padding: "8px 12px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 13, outline: "none" }} />
+                    placeholder="Add a new task..." style={{ flex: "1 1 220px", minWidth: 180, padding: "8px 12px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 13, outline: "none" }} />
                   <input value={newTaskMinutes[goal.id] || ""} onChange={(e) => setNewTaskMinutes((m) => ({ ...m, [goal.id]: e.target.value }))} onKeyDown={(e) => e.key === "Enter" && handleAddTask(goal.id)}
-                    placeholder="mins" type="number" min={1} max={480} style={{ width: 74, padding: "8px 10px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 13, outline: "none" }} />
-                  <button disabled={!newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim()} onClick={() => handleAddTask(goal.id)} style={{ background: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? C.border : C.accent, color: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? C.muted : "#fff", border: "none", borderRadius: 10, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? "not-allowed" : "pointer" }}>Add</button>
+                    placeholder="mins" type="number" min={1} max={480} style={{ width: 90, padding: "8px 10px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 13, outline: "none" }} />
+                  <button disabled={!newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim()} onClick={() => handleAddTask(goal.id)} style={{ background: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? C.border : C.accent, color: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? C.muted : "#fff", border: "none", borderRadius: 10, padding: "8px 16px", fontWeight: 600, fontSize: 13, cursor: !newTaskText[goal.id]?.trim() || !newTaskMinutes[goal.id]?.trim() ? "not-allowed" : "pointer", minHeight: 38 }}>Add</button>
                 </div>
               </div>
             )}

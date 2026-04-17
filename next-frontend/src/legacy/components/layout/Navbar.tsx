@@ -14,9 +14,10 @@ function Ic({ d, size = 18, color = "currentColor", sw = 1.8 }: { d: string; siz
 
 interface HeaderProps {
   C: Theme;
+  onMenuToggle?: () => void;
 }
 
-export function Navbar({ C }: HeaderProps) {
+export function Navbar({ C, onMenuToggle }: HeaderProps) {
   const { user } = useAuthContext();
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notification[]>([]);
@@ -46,15 +47,26 @@ export function Navbar({ C }: HeaderProps) {
   };
 
   return (
-    <div style={{ background: C.card, borderBottom: `1px solid ${C.border}`, padding: "14px 28px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", transition: "background 0.3s", position: "relative" }}>
+    <div
+      className="relative flex shrink-0 items-center justify-between gap-2 border-b px-3 py-3 sm:gap-3 sm:px-4 md:px-6 lg:px-7"
+      style={{ background: C.card, borderBottomColor: C.border, transition: "background 0.3s" }}
+    >
       {/* Left: date */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          onClick={onMenuToggle}
+          className="flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
+          aria-label="Open menu"
+          style={{ borderColor: C.border, background: C.inputBg, color: C.text }}
+        >
+          <Ic d="M3 6h18M3 12h18M3 18h18" size={16} color={C.text} sw={2.2} />
+        </button>
         <Ic d={ICONS.calendar} size={15} color={C.muted} />
-        <span style={{ fontSize: 13, color: C.muted, fontWeight: 500 }}>{dateStr}</span>
+        <span className="hidden truncate text-xs font-medium sm:block" style={{ color: C.muted }}>{dateStr}</span>
       </div>
 
       {/* Right */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3 md:gap-4">
         {/* Bell */}
         <div style={{ position: "relative", cursor: "pointer" }} onClick={() => setNotifOpen((o) => !o)}>
           <Ic d={ICONS.bell} size={20} color={notifOpen ? C.accent : C.muted} />
@@ -64,7 +76,7 @@ export function Navbar({ C }: HeaderProps) {
         </div>
 
         {notifOpen && (
-          <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 90, width: 300, background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, overflow: "hidden" }}>
+          <div className="absolute right-2 top-[calc(100%+8px)] z-[100] w-[92vw] max-w-[300px] overflow-hidden sm:right-16" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
             <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid ${C.border}`, fontSize: 14, fontWeight: 700, color: C.text }}>Notifications</div>
             {notifs.map((n) => (
               <div key={n.id} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10, alignItems: "flex-start", background: n.unread ? C.accentBg : "transparent" }}>
@@ -80,8 +92,8 @@ export function Navbar({ C }: HeaderProps) {
         )}
 
         {/* Avatar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ textAlign: "right" }}>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="hidden text-right sm:block" style={{ textAlign: "right" }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.2 }}>{user.name}</div>
             <div style={{ fontSize: 11, color: C.muted }}>Level {user.level} · {user.xp.toLocaleString()} XP</div>
           </div>

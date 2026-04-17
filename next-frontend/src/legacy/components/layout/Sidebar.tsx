@@ -26,17 +26,54 @@ interface SidebarProps {
   setDark: (v: boolean) => void;
   C: Theme;
   onLogout?: () => void;
+  mobile?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-export function Sidebar({ nav, page, setPage, dark, setDark, C, onLogout }: SidebarProps) {
+export function Sidebar({ nav, page, setPage, dark, setDark, C, onLogout, mobile = false, open = false, onClose }: SidebarProps) {
   return (
-    <div style={{ width: 222, background: C.sidebar, display: "flex", flexDirection: "column", padding: "16px 10px", flexShrink: 0, transition: "background 0.3s" }}>
+    <div
+      className={mobile ? "fixed inset-y-0 left-0 z-40 w-64 lg:hidden" : "w-[222px]"}
+      style={{
+        background: C.sidebar,
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px 10px",
+        flexShrink: 0,
+        transition: "background 0.3s, transform 0.25s ease",
+        transform: mobile ? (open ? "translateX(0)" : "translateX(-100%)") : "translateX(0)",
+      }}
+    >
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 9, color: "#fff", fontWeight: 700, fontSize: 17, padding: "4px 10px 20px", letterSpacing: "-0.3px" }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Ic d={ICONS.star} size={17} color="#fff" sw={2} />
         </div>
         StudyFlow
+        {mobile && (
+          <button
+            onClick={onClose}
+            aria-label="Close menu"
+            style={{
+              marginLeft: "auto",
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "transparent",
+              color: "rgba(255,255,255,0.8)",
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 18,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
 
       {/* Nav items */}

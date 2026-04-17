@@ -179,12 +179,12 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
   useEffect(() => { setCk((k) => k + 1); }, [data]);
 
   if (loading || !data) {
-    return <div style={{ padding: "24px 28px", color: C.text }}>Loading insights...</div>;
+    return <div className="p-3 sm:p-4 md:p-6 lg:p-7" style={{ color: C.text }}>Loading insights...</div>;
   }
 
   if (error) {
     return (
-      <div style={{ padding: "24px 28px", color: C.text }}>
+      <div className="p-3 sm:p-4 md:p-6 lg:p-7" style={{ color: C.text }}>
         <div
           style={{
             border: `1px solid ${C.border}`,
@@ -233,15 +233,15 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
     .map((t) => t.label);
 
   return (
-    <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
+    <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 md:gap-4">
         {([
           { label: "This Week", value: `${totalWkHrs}h`, subtitle: "Active study time", subtitleColor: C.green },
           { label: "Productivity", value: `${data.productivity}%`, subtitle: "Activity rating", subtitleColor: C.green },
           { label: "Tasks Done", value: `${data.totalTasksDone}`, subtitle: "All-time", subtitleColor: C.muted },
           { label: "Achievements", value: `${achievements}`, subtitle: "Milestones earned", subtitleColor: C.muted, tags: achievementTags },
         ] as { label: string; value: string; subtitle: string; subtitleColor: string; tags?: string[] }[]).map((item) => (
-          <Card key={item.label} C={C} style={{ flex: 1, padding: "18px 20px" }}>
+          <Card key={item.label} C={C} style={{ padding: "18px 20px" }}>
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 5, fontWeight: 500 }}>{item.label}</div>
             <div style={{ fontSize: 26, fontWeight: 700, color: C.text }}>{item.value}</div>
             <div style={{ fontSize: 12, color: item.subtitleColor, marginTop: 4 }}>{item.subtitle}</div>
@@ -271,7 +271,7 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 18 }}>
+      <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2 md:gap-5">
         <Card C={C} style={{ padding: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Weekly Study Hours</h3>
@@ -288,7 +288,7 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
         </Card>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 md:gap-5">
         <Card C={C} style={{ padding: 22 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 15, fontWeight: 700, color: C.text }}>Study vs Skills Balance</h3>
           <AnimatedDonut key={`d-${ck}`} study={studyPct} skills={skillsPct} C={C} />
@@ -301,7 +301,8 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
 
       <button
         onClick={() => setShowGuide(true)}
-        style={{ position: "fixed", right: 22, bottom: 22, zIndex: 50, border: `1px solid ${C.border}`, background: C.card, color: C.accent, padding: "9px 13px", borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 22px rgba(15,23,42,0.12)" }}
+        className="fixed bottom-3 right-3 z-50 sm:bottom-5 sm:right-5"
+        style={{ border: `1px solid ${C.border}`, background: C.card, color: C.accent, padding: "9px 13px", borderRadius: 999, fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 22px rgba(15,23,42,0.12)" }}
       >
         📊 See how analytics work
       </button>

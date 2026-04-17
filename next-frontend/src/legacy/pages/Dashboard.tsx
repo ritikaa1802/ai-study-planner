@@ -59,9 +59,10 @@ export function Dashboard({ C }: DashboardProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       {/* Sticky tab bar */}
-      <div style={{ flexShrink: 0, background: C.card, borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", alignItems: "center", gap: 4, zIndex: 10 }}>
+      <div className="flex shrink-0 items-center gap-1 overflow-x-auto px-3 sm:px-4 md:px-6 lg:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.border}`, zIndex: 10 }}>
         {TABS.map((t) => (
           <button key={t.id} onClick={() => scrollTo(t.id)}
+            className="whitespace-nowrap"
             style={{ padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: activeSection === t.id ? 700 : 400, color: activeSection === t.id ? C.accent : C.muted, borderBottom: activeSection === t.id ? `2px solid ${C.accent}` : "2px solid transparent", marginBottom: -1, transition: "all 0.15s", letterSpacing: "0.01em" }}>
             {t.label}
           </button>
@@ -69,7 +70,7 @@ export function Dashboard({ C }: DashboardProps) {
       </div>
 
       {/* Scrollable content */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "28px 28px 40px", boxSizing: "border-box" }}>
+      <div ref={scrollRef} className="box-border flex-1 overflow-y-auto p-3 pb-6 sm:p-4 sm:pb-8 md:p-6 md:pb-10 lg:p-7">
         {/* Greeting */}
         <div style={{ marginBottom: 22 }}>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>{getGreeting()}, {user.name.split(" ")[0]}</h2>
@@ -93,7 +94,7 @@ export function Dashboard({ C }: DashboardProps) {
               <span style={{ background: "#e8c87a22", color: "#b08a30", border: "1px solid #e8c87a88", fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 20 }}>{new Date().getFullYear()}</span>
             </div>
             <Heatmap C={C} />
-            <div style={{ display: "flex", gap: 24, marginTop: 16 }}>
+            <div className="mt-4 flex flex-wrap gap-4 sm:gap-6">
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
                 <Ic d={ICONS.fire} size={16} color={C.orange} />
                 <strong style={{ color: C.text }}>{user.streak} day</strong>

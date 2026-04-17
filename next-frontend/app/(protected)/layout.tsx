@@ -39,6 +39,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [dark, setDark] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -51,6 +52,24 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     if (!mounted) return;
     localStorage.setItem("dark_mode", dark ? "1" : "0");
   }, [mounted, dark]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const closeOnDesktop = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileNavOpen(false);
+      }
+    };
+
+    closeOnDesktop();
+    window.addEventListener("resize", closeOnDesktop);
+    return () => window.removeEventListener("resize", closeOnDesktop);
+  }, [mounted]);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -92,21 +111,42 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <AuthProvider key={providerKey}>
       <ThemeShellProvider value={{ C, dark, setDark }}>
         <div
-          className={dark ? "dark" : ""}
+          className={`${dark ? "dark" : ""} flex h-screen overflow-hidden`}
           style={{
-            display: "flex",
-            height: "100vh",
             fontFamily: "'DM Sans','Segoe UI',sans-serif",
             background: C.bg,
             color: C.text,
-            overflow: "hidden",
             transition: "background 0.3s, color 0.3s",
           }}
         >
-          <Sidebar nav={NAV} page={page} setPage={navigateToPage} dark={dark} setDark={setDark} C={C} onLogout={handleLogout} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Navbar C={C} />
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>{children}</div>
+          <div className="hidden lg:block">
+            <Sidebar nav={NAV} page={page} setPage={navigateToPage} dark={dark} setDark={setDark} C={C} onLogout={handleLogout} />
+          </div>
+
+          {mobileNavOpen && (
+            <button
+              className="fixed inset-0 z-30 bg-black/35 lg:hidden"
+              aria-label="Close navigation"
+              onClick={() => setMobileNavOpen(false)}
+            />
+          )}
+
+          <Sidebar
+            nav={NAV}
+            page={page}
+            setPage={navigateToPage}
+            dark={dark}
+            setDark={setDark}
+            C={C}
+            onLogout={handleLogout}
+            mobile
+            open={mobileNavOpen}
+            onClose={() => setMobileNavOpen(false)}
+          />
+
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden" style={{ flex: 1 }}>
+            <Navbar C={C} onMenuToggle={() => setMobileNavOpen((v) => !v)} />
+            <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
           </div>
         </div>
       </ThemeShellProvider>

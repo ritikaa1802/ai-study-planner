@@ -64,8 +64,8 @@ export function Calendar({ C }: CalendarProps) {
   };
 
   return (
-    <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: 20 }}>
+    <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
+      <div className="flex flex-col gap-4 xl:flex-row xl:gap-5">
         <Card C={C} style={{ flex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.text }}>{new Date(year, month).toLocaleString('default', { month: 'long' })} {year}</h3>
@@ -91,7 +91,7 @@ export function Calendar({ C }: CalendarProps) {
           </div>
         </Card>
 
-        <div style={{ width: 285, flexShrink: 0 }}>
+        <div className="w-full xl:w-[285px] xl:flex-shrink-0">
           <button onClick={() => { setForm({ title: "", tag: "study", time: "09:00 AM", day: sel || 23 }); setShowModal(true); }}
             style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "11px 16px", fontWeight: 600, fontSize: 14, cursor: "pointer", marginBottom: 18, boxSizing: "border-box" }}>
             <Ic d={ICONS.plus} size={16} color="#fff" sw={2.5} /> Add Event
