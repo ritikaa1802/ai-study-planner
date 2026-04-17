@@ -230,7 +230,7 @@ function Register({ onSwitch }: { onSwitch: (v: View) => void }) {
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
           <Ic d={I.check} size={28} color="#22c55e" sw={2} />
         </div>
-        <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#1e2235" }}>Account Created!</h3>
+        <h3 className="auth-form-title" style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#1e2235" }}>Account Created!</h3>
         <p style={{ margin: 0, fontSize: 14, color: "#9298b0" }}>Logging you in...</p>
       </div>
     );
@@ -239,7 +239,7 @@ function Register({ onSwitch }: { onSwitch: (v: View) => void }) {
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Create your account</h2>
+        <h2 className="auth-form-title" style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Create your account</h2>
         <p style={{ margin: 0, fontSize: 14, color: "#9298b0" }}>Start your study journey with StudyFlow</p>
       </div>
 
@@ -338,7 +338,7 @@ function Login({ onSwitch, onLogin }: { onSwitch: (v: View) => void; onLogin?: (
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235" }}>
+        <h2 className="auth-form-title" style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235" }}>
           Welcome back
         </h2>
         <p style={{ margin: 0, fontSize: 14, color: "#9298b0" }}>
@@ -463,7 +463,7 @@ function ForgotPassword({ onSwitch }: { onSwitch: (v: View) => void }) {
     return (
       <div>
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Check your email</h2>
+          <h2 className="auth-form-title" style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Check your email</h2>
           <p style={{ margin: 0, fontSize: 14, color: "#9298b0" }}>We've sent a reset link to your inbox</p>
         </div>
 
@@ -507,7 +507,7 @@ function ForgotPassword({ onSwitch }: { onSwitch: (v: View) => void }) {
       </button>
 
       <div style={{ marginBottom: 28 }}>
-        <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Forgot password?</h2>
+        <h2 className="auth-form-title" style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#1e2235", letterSpacing: "-0.5px" }}>Forgot password?</h2>
         <p style={{ margin: 0, fontSize: 14, color: "#9298b0", lineHeight: 1.6 }}>No worries. Enter your email and we'll send you a reset link.</p>
       </div>
 
@@ -535,17 +535,62 @@ export function AuthPage({ onLogin }: AuthPageProps) {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", fontFamily: "'DM Sans','Segoe UI',sans-serif", overflow: "hidden", position: "relative", background: "#f4f5fb" }}>
+    <div className="auth-root" style={{ display: "flex", height: "100vh", width: "100%", fontFamily: "'DM Sans','Segoe UI',sans-serif", overflow: "hidden", position: "relative", background: "#f4f5fb" }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .auth-root {
+          overflow-x: hidden;
+        }
+
+        @media (max-width: 1023px) {
+          .auth-left {
+            display: none !important;
+          }
+
+          .auth-right {
+            width: 100% !important;
+            padding: 24px 16px !important;
+          }
+
+          .auth-card {
+            width: 100% !important;
+            max-width: 560px !important;
+            border-radius: 18px !important;
+            padding: 28px 18px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .auth-root {
+            min-height: 100dvh !important;
+            height: auto !important;
+            overflow-y: auto !important;
+          }
+
+          .auth-right {
+            align-items: flex-start !important;
+            padding: 16px 12px !important;
+          }
+
+          .auth-card {
+            border-radius: 14px !important;
+            padding: 22px 14px !important;
+          }
+
+          .auth-form-title {
+            font-size: 22px !important;
+            line-height: 1.25 !important;
+          }
+        }
       `}</style>
 
       <Background />
 
       {/* ── Left panel — branding ── */}
-      <div style={{ width: "45%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", position: "relative", zIndex: 1 }}>
+      <div className="auth-left" style={{ width: "45%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 64px", position: "relative", zIndex: 1 }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 56 }}>
           <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #7b7ec8, #5c6380)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(123,126,200,0.4)" }}>
@@ -600,8 +645,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
       </div>
 
       {/* ── Right panel — form ── */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 60px", position: "relative", zIndex: 1 }}>
-        <div style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 24, padding: "40px 40px", boxShadow: "0 8px 40px rgba(92,99,128,0.12), 0 1px 4px rgba(0,0,0,0.06)", animation: "slideIn 0.45s ease both" }}>
+      <div className="auth-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 60px", position: "relative", zIndex: 1 }}>
+        <div className="auth-card" style={{ width: "100%", maxWidth: 420, background: "#fff", borderRadius: 24, padding: "40px 40px", boxShadow: "0 8px 40px rgba(92,99,128,0.12), 0 1px 4px rgba(0,0,0,0.06)", animation: "slideIn 0.45s ease both" }}>
           {/* Step indicator — only on register/login */}
           {view !== "forgot" && (
             <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
