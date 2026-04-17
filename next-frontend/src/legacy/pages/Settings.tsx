@@ -68,18 +68,18 @@ export function Resources({ C }: ResourcesProps) {
   };
 
   return (
-    <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-        <Card C={C} style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
+    <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
+      <div className="mb-4 flex flex-wrap gap-3 md:gap-4">
+        <Card C={C} style={{ padding: "12px 18px", display: "flex", alignItems: "center", gap: 10, flex: "1 1 260px" }}>
           <Ic d={ICONS.search} size={18} color={C.muted} />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search resources..."
             style={{ border: "none", outline: "none", fontSize: 14, color: C.text, flex: 1, background: "transparent" }} />
         </Card>
-        <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "0 20px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+        <button onClick={() => setShowModal(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 12, minHeight: 44, padding: "0 20px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
           <Ic d={ICONS.plus} size={16} /> Add Resource
         </button>
       </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+      <div className="mb-5 flex flex-wrap gap-2 sm:gap-3">
         {["All", "Documents", "Videos", "Links"].map((f) => (
           <button key={f} onClick={() => setFilter(f)}
             style={{ padding: "7px 18px", borderRadius: 999, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500, background: filter === f ? C.accent : C.card, color: filter === f ? "#fff" : C.text, boxShadow: "0 1px 3px rgba(0,0,0,0.07)" }}>
@@ -87,7 +87,7 @@ export function Resources({ C }: ResourcesProps) {
           </button>
         ))}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 md:gap-4">
         {shown.map((item, i) => (
           <Card key={i} C={C} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -195,39 +195,43 @@ export function StudyCircle({ C }: StudyCircleProps) {
   };
 
   return (
-    <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+    <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
+      <div className="mb-4 flex flex-wrap gap-2 sm:gap-3">
         {circles.length === 0 && (
-          <div style={{ padding: "12px 16px", background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, flex: 1, color: C.text, fontSize: 14 }}>
+          <div style={{ padding: "12px 16px", background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, flex: "1 1 280px", color: C.text, fontSize: 14 }}>
             You aren't in any study circles. Create or join one to collaborate with friends!
           </div>
         )}
-        {circles.map(c => (
-          <button key={c.id} onClick={() => { setActiveCircleId(c.id); setTab("Dashboard"); }} style={{ padding: "8px 16px", background: activeCircleId === c.id ? C.accentBg : C.card, color: activeCircleId === c.id ? C.accent : C.text, border: `1px solid ${activeCircleId === c.id ? C.accent : C.border}`, borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-            {c.name}
-          </button>
-        ))}
-        <button onClick={() => setShowJoin(true)} style={{ marginLeft: "auto", background: C.card, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Join Circle</button>
-        <button onClick={() => setShowCreate(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Create Circle</button>
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+          {circles.map(c => (
+            <button key={c.id} onClick={() => { setActiveCircleId(c.id); setTab("Dashboard"); }} style={{ whiteSpace: "nowrap", padding: "8px 16px", background: activeCircleId === c.id ? C.accentBg : C.card, color: activeCircleId === c.id ? C.accent : C.text, border: `1px solid ${activeCircleId === c.id ? C.accent : C.border}`, borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              {c.name}
+            </button>
+          ))}
+        </div>
+        <div className="ml-auto flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+          <button onClick={() => setShowJoin(true)} style={{ background: C.card, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Join Circle</button>
+          <button onClick={() => setShowCreate(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Create Circle</button>
+        </div>
       </div>
 
       {activeCircle && (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3" style={{}}>
             <div>
               <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>{activeCircle.name}</h2>
               <p style={{ margin: "4px 0 0", fontSize: 13, color: C.muted }}>Invite Code: <strong>{activeCircle.inviteCode}</strong> · {activeCircle.members.length}/8 Members</p>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 20 }}>
+          <div className="mb-5 flex gap-2 overflow-x-auto border-b pb-4" style={{ borderBottomColor: C.border }}>
             {["Dashboard", "Shared Goals", "Schedule", "Updates"].map(t => (
               <button key={t} onClick={() => setTab(t)} style={{ background: tab === t ? C.text : "transparent", color: tab === t ? C.bg : C.muted, padding: "6px 16px", borderRadius: 20, border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{t}</button>
             ))}
           </div>
 
           {tab === "Dashboard" && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 md:gap-5">
               <Card C={C}>
                 <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Weekly Leaderboard 🔥</h3>
                 {leaderboard.length === 0 && <span style={{ color: C.muted, fontSize: 13 }}>No study activity yet.</span>}
@@ -243,7 +247,7 @@ export function StudyCircle({ C }: StudyCircleProps) {
               </Card>
               <Card C={C}>
                 <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Circle Stats</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {[[activeCircle.members.length.toString(), "Members"], [(schedules?.length || 0).toString(), "Upcoming Sessions"], [leaderboard.reduce((a, b) => a + b.tasksCompleted, 0).toString(), "Total Tasks"], [(goals?.length || 0).toString(), "Shared Goals"]].map(([v, l]) => (
                     <div key={l} style={{ background: C.inputBg, borderRadius: 12, padding: "14px 16px" }}>
                       <div style={{ fontSize: 22, fontWeight: 700, color: C.statNum }}>{v}</div>
@@ -260,9 +264,9 @@ export function StudyCircle({ C }: StudyCircleProps) {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                   <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: C.text }}>Group Goals & Milestone Tracking</h3>
               </div>
-              <div style={{ display: "flex", gap: 10, marginBottom: 20, background: C.inputBg, padding: 12, borderRadius: 12 }}>
-                  <input value={goalForm.title} onChange={e => setGoalForm(f => ({ ...f, title: e.target.value }))} placeholder="New shared goal title..." style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }} />
-                  <button onClick={handleCreateGroupGoal} disabled={!goalForm.title.trim()} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 600, cursor: goalForm.title.trim() ? "pointer" : "not-allowed", opacity: goalForm.title.trim() ? 1 : 0.5 }}>Create Shared Goal</button>
+                <div className="mb-5 flex flex-wrap gap-2" style={{ background: C.inputBg, padding: 12, borderRadius: 12 }}>
+                  <input value={goalForm.title} onChange={e => setGoalForm(f => ({ ...f, title: e.target.value }))} placeholder="New shared goal title..." style={{ flex: "1 1 220px", padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }} />
+                  <button onClick={handleCreateGroupGoal} disabled={!goalForm.title.trim()} style={{ minHeight: 38, background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "0 16px", fontWeight: 600, cursor: goalForm.title.trim() ? "pointer" : "not-allowed", opacity: goalForm.title.trim() ? 1 : 0.5 }}>Create Shared Goal</button>
               </div>
               {goals.length === 0 && <span style={{ color: C.muted, fontSize: 13 }}>No shared goals. Create one above!</span>}
               {goals.map(g => {
@@ -297,12 +301,12 @@ export function StudyCircle({ C }: StudyCircleProps) {
                ))}
                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, background: C.inputBg, padding: 16, borderRadius: 12 }}>
                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>Schedule new block:</div>
-                 <div style={{ display: "flex", gap: 10 }}>
-                     <select value={scheduleGoalId} onChange={e => setScheduleGoalId(e.target.value)} style={{ padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}>
+                 <div className="flex flex-wrap gap-2 sm:gap-3">
+                     <select value={scheduleGoalId} onChange={e => setScheduleGoalId(e.target.value)} style={{ flex: "1 1 220px", padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}>
                          <option value="">Select Target Goal (Optional)</option>
                          {goals.map(g => <option key={g.id} value={g.title}>{g.title}</option>)}
                      </select>
-                     <button onClick={() => addSchedule(scheduleGoalId ? `[Goal: ${scheduleGoalId}] Study Session` : "Group Study Block", new Date().toISOString(), new Date(Date.now() + 7200000).toISOString())} style={{ background: C.accent, color: "#fff", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>+ Add Schedule (Next 2 Hours)</button>
+                     <button onClick={() => addSchedule(scheduleGoalId ? `[Goal: ${scheduleGoalId}] Study Session` : "Group Study Block", new Date().toISOString(), new Date(Date.now() + 7200000).toISOString())} style={{ minHeight: 38, background: C.accent, color: "#fff", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>+ Add Schedule (Next 2 Hours)</button>
                  </div>
                </div>
             </Card>
@@ -323,9 +327,9 @@ export function StudyCircle({ C }: StudyCircleProps) {
                    </div>
                  ))}
                </div>
-               <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-                 <input value={msgInput} onChange={e => setMsgInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} placeholder="Share an update or resource link..." style={{ flex: 1, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, borderRadius: 20, padding: "10px 16px", outline: "none", fontSize: 14 }} />
-                 <button onClick={handleSend} style={{ background: C.accent, color: "#fff", border: "none", padding: "0 20px", borderRadius: 20, fontWeight: 600, cursor: "pointer" }}>Send</button>
+               <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
+                 <input value={msgInput} onChange={e => setMsgInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()} placeholder="Share an update or resource link..." style={{ flex: "1 1 220px", border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, borderRadius: 20, padding: "10px 16px", outline: "none", fontSize: 14 }} />
+                 <button onClick={handleSend} style={{ minHeight: 40, background: C.accent, color: "#fff", border: "none", padding: "0 20px", borderRadius: 20, fontWeight: 600, cursor: "pointer" }}>Send</button>
                </div>
             </Card>
           )}
@@ -502,12 +506,12 @@ export function Settings({ C, dark, setDark }: SettingsProps) {
   };
 
   return (
-    <div style={{ padding: "24px 28px", height: "100%", overflowY: "auto", boxSizing: "border-box" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "flex-start" }}>
+    <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px] md:gap-5" style={{ alignItems: "flex-start" }}>
         <div>
           <Card C={C} style={{ marginBottom: 16 }}>
             <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: C.text }}>Profile</h3>
-            <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
+            <div className="mb-4 flex flex-wrap items-end gap-3 sm:gap-4">
               <div style={{ width: 70, height: 70, borderRadius: "50%", background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 700, overflow: "hidden" }}>
                 {avatarSrc && !avatarLoadError ? (
                   <img src={avatarSrc} alt="Profile" onError={() => setAvatarLoadError(true)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -530,7 +534,7 @@ export function Settings({ C, dark, setDark }: SettingsProps) {
                 style={{ display: "none" }}
               />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <div>
                 <label style={{ fontSize: 13, fontWeight: 500, color: C.muted, display: "block", marginBottom: 5 }}>First Name</label>
                 <input value={firstName} onChange={e => setFirstName(e.target.value)} style={{ width: "100%", padding: "9px 12px", borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, boxSizing: "border-box", outline: "none", background: C.inputBg, color: C.text }} />
