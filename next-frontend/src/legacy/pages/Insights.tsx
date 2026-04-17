@@ -275,14 +275,14 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
         <Card C={C} style={{ padding: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Weekly Study Hours</h3>
-            <span style={{ background: "#fef3c7", color: "#b45309", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Last 7 days</span>
+            <span style={{ background: C.accentBg, color: C.accent, border: `1px solid ${C.accent}66`, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Last 7 days</span>
           </div>
           <AnimatedLineChart key={`l-${ck}`} data={wk} labels={lb} C={C} />
         </Card>
         <Card C={C} style={{ padding: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Tasks Completed</h3>
-            <span style={{ background: "#fef3c7", color: "#b45309", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Weekly</span>
+            <span style={{ background: C.accentBg, color: C.accent, border: `1px solid ${C.accent}66`, fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Weekly</span>
           </div>
           <AnimatedBarChart key={`b-${ck}`} data={tk} labels={lb} C={C} />
         </Card>
