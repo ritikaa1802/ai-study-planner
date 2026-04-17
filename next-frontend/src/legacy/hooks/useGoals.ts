@@ -30,7 +30,7 @@ export function useGoals() {
         } catch {
           // Keep fallback message.
         }
-        throw new Error(message);
+        throw new Error(`${message} (status ${res.status})`);
       }
 
       const data = await res.json();
@@ -80,7 +80,7 @@ export function useGoals() {
       } catch {
         // Keep fallback message.
       }
-      setError(message);
+      setError(`${message} (status ${res.status})`);
       return null;
     }
 

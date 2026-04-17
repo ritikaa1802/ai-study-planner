@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { resolveApiUrl } from "../utils/api";
+import { apiFetch } from "../utils/api";
 
 export function ResetPasswordPage() {
     const [token, setToken] = useState("");
@@ -23,10 +23,11 @@ export function ResetPasswordPage() {
         setError("");
 
         try {
-            const res = await fetch(resolveApiUrl("/api/auth/reset-password"), {
+            const res = await apiFetch("/api/auth/reset-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token, newPassword: password }),
+                skipAuthRedirect: true,
             });
             const data = await res.json();
             if (!res.ok) { setError(data.message || "Reset failed."); }

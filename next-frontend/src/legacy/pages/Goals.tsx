@@ -42,9 +42,10 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [showModal, setShowModal] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
-  const [newType, setNewType] = useState<GoalType>("BRAIN_GAINS");
+  const [newType, setNewType] = useState<GoalType | "">("BRAIN_GAINS");
   const [newTaskText, setNewTaskText] = useState<Record<number, string>>({});
   const [newTaskMinutes, setNewTaskMinutes] = useState<Record<number, string>>({});
+  const [typeOpen, setTypeOpen] = useState(false);
   const [showPomodoroPrompt, setShowPomodoroPrompt] = useState(false);
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const displayError = error && !/^failed to /i.test(error) ? error : null;
@@ -53,12 +54,12 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   /* -------- ADD GOAL FUNCTION -------- */
 
   async function handleAddGoal() {
-    if (!newTitle.trim() || isCreatingGoal) return;
+    if (!newTitle.trim() || !newType || isCreatingGoal) return;
 
     setIsCreatingGoal(true);
 
     try {
-      const createdGoal = await addGoal(newTitle, newType || "BRAIN_GAINS");
+      const createdGoal = await addGoal(newTitle, newType);
 
       if (createdGoal && !localStorage.getItem("goal_pomodoro_prompt_seen")) {
         try {
@@ -295,19 +296,30 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="e.g. DSA Prep, Learn Spanish..."
             style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 16 }} />
           <label style={{ fontSize: 13, fontWeight: 600, color: C.muted, display: "block", marginBottom: 6 }}>Goal Type</label>
-          <select
-            value={newType}
-            onChange={(e) => setNewType(e.target.value as GoalType)}
-            style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: `1px solid ${C.border}`, background: C.inputBg, color: C.text, fontSize: 14, outline: "none", boxSizing: "border-box" }}
-          >
-            {GOAL_TYPES.map((t) => (
-              <option key={t.key} value={t.key}>{t.label}</option>
-            ))}
-          </select>
+          <div style={{ position: "relative" }}>
+            <div onClick={() => setTypeOpen((o) => !o)} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${typeOpen ? C.accent : C.border}`, background: C.inputBg, color: newType ? C.text : C.muted, fontSize: 14, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>{newType ? GOAL_TYPES.find((t) => t.key === newType)?.label : "Select a type..."}</span>
+              <span style={{ fontSize: 11, color: C.muted }}>{typeOpen ? "▲" : "▼"}</span>
+            </div>
+            {typeOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 10, overflow: "hidden" }}>
+                {GOAL_TYPES.map((t) => {
+                  const tc = GOAL_TYPE_COLORS[t.key];
+                  return (
+                    <div key={t.key} onClick={() => { setNewType(t.key); setTypeOpen(false); }}
+                      style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, background: newType === t.key ? C.accentBg : "transparent", borderBottom: `1px solid ${C.border}` }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, padding: "2px 10px", borderRadius: 20, background: tc.bg, color: tc.color, whiteSpace: "nowrap" }}>{t.label}</span>
+                      <span style={{ fontSize: 12, color: C.muted }}>{t.desc}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
             <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleAddGoal} disabled={!newTitle.trim() || isCreatingGoal}
-              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+            <button onClick={handleAddGoal} disabled={!newTitle.trim() || !newType || isCreatingGoal}
+              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || !newType || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || !newType || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || !newType || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
               {isCreatingGoal ? "Creating..." : "Create Goal"}
             </button>
           </div>

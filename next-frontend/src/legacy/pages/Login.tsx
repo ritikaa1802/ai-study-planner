@@ -1,4 +1,4 @@
-import { resolveApiUrl } from "../utils/api";
+import { apiFetch } from "../utils/api";
 
 import { useState } from "react";
 
@@ -185,7 +185,7 @@ function Register({ onSwitch }: { onSwitch: (v: View) => void }) {
     try {
       setLoading(true);
 
-      const res = await fetch(resolveApiUrl("/api/auth/register"), {
+      const res = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -194,7 +194,8 @@ function Register({ onSwitch }: { onSwitch: (v: View) => void }) {
           name,
           email,
           password
-        })
+        }),
+        skipAuthRedirect: true,
       });
 
       let data: any = {};
@@ -298,7 +299,7 @@ function Login({ onSwitch, onLogin }: { onSwitch: (v: View) => void; onLogin?: (
     try {
       setLoading(true);
 
-      const res = await fetch(resolveApiUrl("/api/auth/login"), {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -306,7 +307,8 @@ function Login({ onSwitch, onLogin }: { onSwitch: (v: View) => void; onLogin?: (
         body: JSON.stringify({
           email,
           password
-        })
+        }),
+        skipAuthRedirect: true,
       });
 
       let data = {};
@@ -435,10 +437,11 @@ function ForgotPassword({ onSwitch }: { onSwitch: (v: View) => void }) {
   const submit = async () => {
     if (!email.includes("@")) { setError("Enter a valid email address"); return; }
     try {
-      const res = await fetch(resolveApiUrl("/api/auth/forgot-password"), {
+      const res = await apiFetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
+        skipAuthRedirect: true,
       });
 
       const data = await res.json();
