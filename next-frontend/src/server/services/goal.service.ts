@@ -36,99 +36,108 @@ export const incrementDeletedCompletedGoalsToday = async (userId: number, by = 1
 };
 
 export const purgeExpiredCompletedGoals = async (userId: number) => {
-	const now = new Date();
-	const cutoff = new Date(now.getTime() - AUTO_DELETE_AFTER_HOURS * 60 * 60 * 1000);
+	try {
+		const now = new Date();
+		const cutoff = new Date(now.getTime() - AUTO_DELETE_AFTER_HOURS * 60 * 60 * 1000);
 
-	// Backfill completion timestamp for already-complete goals so countdown can start.
-	await prisma.goal.updateMany({
-		where: {
-			userId,
-			progress: 100,
-			completedAt: null,
-		},
-		data: {
-			completedAt: now,
-		},
-	});
-
-	const expiredGoals = await prisma.goal.findMany({
-		where: {
-			userId,
-			progress: 100,
-			completedAt: {
-				lte: cutoff,
+		// Backfill completion timestamp for already-complete goals so countdown can start.
+		await prisma.goal.updateMany({
+			where: {
+				userId,
+				progress: 100,
+				completedAt: null,
 			},
-		},
-		select: {
-			id: true,
-		},
-	});
+			data: {
+				completedAt: now,
+			},
+		});
 
-	if (expiredGoals.length > 0) {
-		const goalIds = expiredGoals.map((goal) => goal.id);
-
-		await prisma.$transaction([
-			prisma.task.deleteMany({
-				where: {
-					goalId: {
-						in: goalIds,
-					},
+		const expiredGoals = await prisma.goal.findMany({
+			where: {
+				userId,
+				progress: 100,
+				completedAt: {
+					lte: cutoff,
 				},
-			}),
-			prisma.goal.deleteMany({
-				where: {
-					id: {
-						in: goalIds,
-					},
-				},
-			}),
-		]);
+			},
+			select: {
+				id: true,
+			},
+		});
 
-		await incrementDeletedCompletedGoalsToday(userId, goalIds.length);
+		if (expiredGoals.length > 0) {
+			const goalIds = expiredGoals.map((goal) => goal.id);
+
+			await prisma.$transaction([
+				prisma.task.deleteMany({
+					where: {
+						goalId: {
+							in: goalIds,
+						},
+					},
+				}),
+				prisma.goal.deleteMany({
+					where: {
+						id: {
+							in: goalIds,
+						},
+					},
+				}),
+			]);
+
+			await incrementDeletedCompletedGoalsToday(userId, goalIds.length);
+		}
+
+		const expiredIncompleteGoals = await prisma.goal.findMany({
+			where: {
+				userId,
+				progress: {
+					lt: 100,
+				},
+				createdAt: {
+					lte: cutoff,
+				},
+			},
+			select: {
+				id: true,
+			},
+		});
+
+		if (expiredIncompleteGoals.length > 0) {
+			const incompleteIds = expiredIncompleteGoals.map((goal) => goal.id);
+
+			await prisma.$transaction([
+				prisma.task.deleteMany({
+					where: {
+						goalId: {
+							in: incompleteIds,
+						},
+					},
+				}),
+				prisma.goal.deleteMany({
+					where: {
+						id: {
+							in: incompleteIds,
+						},
+					},
+				}),
+				(prisma.user.update as any)({
+					where: { id: userId },
+					data: { lifetimeGoalsMissed: { increment: incompleteIds.length } },
+				}),
+			]);
+		}
+
+		return {
+			autoDeletedCompleted: expiredGoals.length,
+			autoDeletedMissed: expiredIncompleteGoals.length,
+		};
+	} catch (error) {
+		// Keep goals endpoint functional even when DB is behind latest schema.
+		console.warn("Goal cleanup fallback: skipping purge due to schema mismatch", error);
+		return {
+			autoDeletedCompleted: 0,
+			autoDeletedMissed: 0,
+		};
 	}
-
-	const expiredIncompleteGoals = await prisma.goal.findMany({
-		where: {
-			userId,
-			progress: {
-				lt: 100,
-			},
-			createdAt: {
-				lte: cutoff,
-			},
-		},
-		select: {
-			id: true,
-		},
-	});
-
-	if (expiredIncompleteGoals.length > 0) {
-		const incompleteIds = expiredIncompleteGoals.map((goal) => goal.id);
-
-		await prisma.$transaction([
-			prisma.task.deleteMany({
-				where: {
-					goalId: {
-						in: incompleteIds,
-					},
-				},
-			}),
-			prisma.goal.deleteMany({
-				where: {
-					id: {
-						in: incompleteIds,
-					},
-				},
-			}),
-			(prisma.user.update as any)({
-				where: { id: userId },
-				data: { lifetimeGoalsMissed: { increment: incompleteIds.length } },
-			}),
-		]);
-	}
-
-	return {
-		autoDeletedCompleted: expiredGoals.length,
-		autoDeletedMissed: expiredIncompleteGoals.length,
-	};
 };

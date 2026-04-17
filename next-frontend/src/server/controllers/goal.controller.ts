@@ -54,15 +54,39 @@ export const getGoals = async (ctx: ServerContext) => {
       },
     });
 
-    const user = await (prisma.user.findUnique as any)({
-      where: { id: userId },
-      select: {
-        deletedCompletedGoalsCount: true,
-        deletedCompletedGoalsDate: true,
-        lifetimeGoalsCompleted: true,
-        lifetimeGoalsMissed: true,
-      },
-    });
+    let user: {
+      deletedCompletedGoalsCount?: number;
+      deletedCompletedGoalsDate?: Date | null;
+      lifetimeGoalsCompleted?: number;
+      lifetimeGoalsMissed?: number;
+    } | null = null;
+
+    try {
+      user = await (prisma.user.findUnique as any)({
+        where: { id: userId },
+        select: {
+          deletedCompletedGoalsCount: true,
+          deletedCompletedGoalsDate: true,
+          lifetimeGoalsCompleted: true,
+          lifetimeGoalsMissed: true,
+        },
+      });
+    } catch (error) {
+      // Fallback for deployments where lifetime fields are not migrated yet.
+      console.warn("Goals fallback: lifetime counters unavailable", error);
+      try {
+        user = await (prisma.user.findUnique as any)({
+          where: { id: userId },
+          select: {
+            deletedCompletedGoalsCount: true,
+            deletedCompletedGoalsDate: true,
+          },
+        });
+      } catch (fallbackError) {
+        console.warn("Goals fallback: deleted-completed counters unavailable", fallbackError);
+        user = null;
+      }
+    }
 
     const now = new Date();
     const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
