@@ -196,19 +196,21 @@ export function StudyCircle({ C }: StudyCircleProps) {
 
   return (
     <div className="box-border h-full overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-7">
-      <div className="mb-4 flex flex-wrap gap-2 sm:gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
         {circles.length === 0 && (
           <div style={{ padding: "12px 16px", background: C.card, borderRadius: 12, border: `1px solid ${C.border}`, flex: "1 1 280px", color: C.text, fontSize: 14 }}>
             You aren't in any study circles. Create or join one to collaborate with friends!
           </div>
         )}
-        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
-          {circles.map(c => (
-            <button key={c.id} onClick={() => { setActiveCircleId(c.id); setTab("Dashboard"); }} style={{ whiteSpace: "nowrap", padding: "8px 16px", background: activeCircleId === c.id ? C.accentBg : C.card, color: activeCircleId === c.id ? C.accent : C.text, border: `1px solid ${activeCircleId === c.id ? C.accent : C.border}`, borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              {c.name}
-            </button>
-          ))}
-        </div>
+        {circles.length > 0 && (
+          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+            {circles.map(c => (
+              <button key={c.id} onClick={() => { setActiveCircleId(c.id); setTab("Dashboard"); }} style={{ whiteSpace: "nowrap", padding: "8px 16px", background: activeCircleId === c.id ? C.accentBg : C.card, color: activeCircleId === c.id ? C.accent : C.text, border: `1px solid ${activeCircleId === c.id ? C.accent : C.border}`, borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="ml-auto flex w-full flex-wrap justify-end gap-2 sm:w-auto">
           <button onClick={() => setShowJoin(true)} style={{ background: C.card, color: C.text, border: `1px solid ${C.border}`, borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Join Circle</button>
           <button onClick={() => setShowCreate(true)} style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "8px 16px", fontWeight: 600, cursor: "pointer", fontSize: 13 }}>Create Circle</button>
