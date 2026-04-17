@@ -5,8 +5,16 @@ type ApiFetchOptions = RequestInit & {
 };
 
 export function getApiBase() {
-  // Prefer explicit override, otherwise always use same-origin Next API routes.
-  return API_BASE?.trim() ? API_BASE : window.location.origin;
+  if (API_BASE?.trim()) {
+    return API_BASE;
+  }
+
+  // In local dev, default to Express backend unless NEXT_PUBLIC_API_URL overrides it.
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://localhost:5000";
+  }
+
+  return window.location.origin;
 }
 
 export function resolveApiUrl(path: string) {

@@ -13,6 +13,15 @@ body {
   overflow-x: hidden;
 }
 
+.dashboard-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.dashboard-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,

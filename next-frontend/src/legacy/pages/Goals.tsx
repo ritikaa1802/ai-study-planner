@@ -48,6 +48,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [typeOpen, setTypeOpen] = useState(false);
   const [showPomodoroPrompt, setShowPomodoroPrompt] = useState(false);
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
+  const displayError = error && !/^failed to /i.test(error) ? error : null;
 
 
   /* -------- ADD GOAL FUNCTION -------- */
@@ -153,9 +154,9 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
         </button>
       </div>
 
-      {error && (
+      {displayError && (
         <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: `1px solid ${C.red}55`, background: `${C.red}11`, color: C.red, fontSize: 13, fontWeight: 600 }}>
-          {error}
+          {displayError}
         </div>
       )}
 

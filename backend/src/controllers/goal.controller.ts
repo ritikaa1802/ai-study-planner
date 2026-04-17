@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import prisma from "../prisma"
+import { Prisma } from "@prisma/client"
 import { AppError } from "../utils/appError"
 import { catchAsync } from "../utils/catchAsync"
 import { updateGoalSchema } from "../validators/goal.validator"
@@ -10,9 +11,25 @@ export const createGoal = async (req: any, res: any) => {
     const { title, type, studyCircleId } = req.body
     const userId = req.userId   // ✅ FIXED
 
+    const allowedTypes = [
+      "BRAIN_GAINS",
+      "MONEY_MOVES",
+      "MAIN_CHARACTER_ENERGY",
+      "COOKING_PROJECTS",
+      "LOCK_IN_MODE",
+    ]
+
+    if (typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ error: "Goal title is required" })
+    }
+
+    if (typeof type !== "string" || !allowedTypes.includes(type)) {
+      return res.status(400).json({ error: "Invalid goal type" })
+    }
+
     const goal = await prisma.goal.create({
       data: {
-        title,
+        title: title.trim(),
         type,
         studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
         userId
@@ -21,8 +38,23 @@ export const createGoal = async (req: any, res: any) => {
 
     res.status(201).json(goal)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: "Failed to create goal" })
+    console.error("createGoal error", error)
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return res.status(401).json({ error: "Session expired. Please sign in again." })
+      }
+
+      if (error.code === "P2021") {
+        return res.status(500).json({ error: "Database schema is out of date. Please run migrations." })
+      }
+    }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return res.status(500).json({ error: "Database connection failed. Check DATABASE_URL." })
+    }
+
+    res.status(500).json({ error: "Unable to create goal right now." })
   }
 }
 

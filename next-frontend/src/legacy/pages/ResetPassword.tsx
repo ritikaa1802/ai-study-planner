@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE } from "../config";
+import { resolveApiUrl } from "../utils/api";
 
 export function ResetPasswordPage() {
     const [token, setToken] = useState("");
@@ -23,7 +23,7 @@ export function ResetPasswordPage() {
         setError("");
 
         try {
-            const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
+            const res = await fetch(resolveApiUrl("/api/auth/reset-password"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token, newPassword: password }),

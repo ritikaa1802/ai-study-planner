@@ -1,4 +1,4 @@
-import { API_BASE } from "../config";
+import { resolveApiUrl } from "../utils/api";
 
 import { useState } from "react";
 
@@ -185,7 +185,7 @@ function Register({ onSwitch }: { onSwitch: (v: View) => void }) {
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
+      const res = await fetch(resolveApiUrl("/api/auth/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -298,7 +298,7 @@ function Login({ onSwitch, onLogin }: { onSwitch: (v: View) => void; onLogin?: (
     try {
       setLoading(true);
 
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(resolveApiUrl("/api/auth/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -435,7 +435,7 @@ function ForgotPassword({ onSwitch }: { onSwitch: (v: View) => void }) {
   const submit = async () => {
     if (!email.includes("@")) { setError("Enter a valid email address"); return; }
     try {
-      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+      const res = await fetch(resolveApiUrl("/api/auth/forgot-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })

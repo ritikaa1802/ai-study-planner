@@ -70,7 +70,7 @@ export function Dashboard({ C }: DashboardProps) {
       </div>
 
       {/* Scrollable content */}
-      <div ref={scrollRef} className="box-border flex-1 overflow-y-auto p-3 pb-6 sm:p-4 sm:pb-8 md:p-6 md:pb-10 lg:p-7">
+      <div ref={scrollRef} className="dashboard-scroll box-border flex-1 overflow-y-auto p-3 pb-6 sm:p-4 sm:pb-8 md:p-6 md:pb-10 lg:p-7">
         {/* Greeting */}
         <div style={{ marginBottom: 22 }}>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>{getGreeting()}, {user.name.split(" ")[0]}</h2>
