@@ -34,7 +34,7 @@ interface SidebarProps {
 export function Sidebar({ nav, page, setPage, dark, setDark, C, onLogout, mobile = false, open = false, onClose }: SidebarProps) {
   return (
     <div
-      className={mobile ? "fixed inset-y-0 left-0 z-40 w-64 lg:hidden" : "w-[222px]"}
+      className={mobile ? "fixed inset-y-0 left-0 z-40 w-64 lg:hidden" : "w-[222px] min-h-[100dvh]"}
       style={{
         background: C.sidebar,
         display: "flex",

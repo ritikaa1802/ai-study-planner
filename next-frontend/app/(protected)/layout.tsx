@@ -57,6 +57,23 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!mounted) return;
 
+    const themeBackground = dark ? DARK.bg : LIGHT.bg;
+
+    const prevBodyBg = document.body.style.backgroundColor;
+    const prevHtmlBg = document.documentElement.style.backgroundColor;
+
+    document.body.style.backgroundColor = themeBackground;
+    document.documentElement.style.backgroundColor = themeBackground;
+
+    return () => {
+      document.body.style.backgroundColor = prevBodyBg;
+      document.documentElement.style.backgroundColor = prevHtmlBg;
+    };
+  }, [mounted, dark]);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const syncViewport = () => {
       const desktop = window.innerWidth >= 1024;
       setIsDesktop(desktop);
@@ -114,7 +131,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <AuthProvider key={providerKey}>
       <ThemeShellProvider value={{ C, dark, setDark }}>
         <div
-          className={`${dark ? "dark" : ""} flex h-screen overflow-hidden`}
+          className={`${dark ? "dark" : ""} flex min-h-[100dvh] w-full overflow-hidden`}
           style={{
             fontFamily: "'DM Sans','Segoe UI',sans-serif",
             background: C.bg,
