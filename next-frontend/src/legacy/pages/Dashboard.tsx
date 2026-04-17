@@ -89,7 +89,7 @@ export function Dashboard({ C }: DashboardProps) {
             <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Consistency</span>
           </div>
           <Card C={C}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3" style={{}}>
               <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: C.text }}>Consistency Tracker</h2>
               <span style={{ background: "#e8c87a22", color: "#b08a30", border: "1px solid #e8c87a88", fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 20 }}>{new Date().getFullYear()}</span>
             </div>

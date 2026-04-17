@@ -71,7 +71,7 @@ export function InsightCard({ C }: InsightCardProps) {
         <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, background: C.accentBg, color: C.accent, letterSpacing: "0.04em" }}>LIVE</span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 md:gap-4">
         {/* Burnout Risk */}
         <div style={{ padding: 16, borderRadius: 14, background: C.bg, border: `1px solid ${C.border}` }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>Burnout Risk</div>

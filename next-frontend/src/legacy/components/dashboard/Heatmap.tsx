@@ -82,7 +82,8 @@ export function Heatmap({ C }: { C: Theme }) {
   }, []);
 
   return (
-    <div style={{ userSelect: "none", padding: "10px 0" }}>
+    <div className="overflow-x-auto" style={{ userSelect: "none", padding: "10px 0" }}>
+      <div className="min-w-[900px]">
       {/* Optimized Header Heading - Precise 36px Padding */}
       <div style={{ display: "flex", paddingLeft: 36, marginBottom: 10, position: "relative", height: 16 }}>
         {monthPositions.map((m) => (
@@ -125,7 +126,7 @@ export function Heatmap({ C }: { C: Theme }) {
         </div>
 
         {/* The Grid - Precise gap: 3 + dot: 13 = 16 column width */}
-        <div style={{ display: "flex", gap: 3, flex: 1, overflow: "hidden" }}>
+        <div style={{ display: "flex", gap: 3 }}>
           {Array.from({ length: 53 }).map((_, w) => (
             <div key={w} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               {Array.from({ length: 7 }).map((_, d) => {
@@ -161,6 +162,7 @@ export function Heatmap({ C }: { C: Theme }) {
           <div key={i} style={{ width: 12, height: 12, borderRadius: "50%", background: getDotColor(v, C) }} />
         ))}
         <span style={{ fontSize: 10, color: C.muted, fontWeight: 500 }}>More</span>
+      </div>
       </div>
     </div>
   );

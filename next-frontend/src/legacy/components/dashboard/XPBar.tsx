@@ -24,7 +24,7 @@ export function XPBar({ C }: XPBarProps) {
   const xpToNext = xpForCurrentLevel - (user.xp % xpForCurrentLevel);
 
   return (
-    <div style={{ display: "flex", gap: 16 }}>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 md:gap-4">
       <Card C={C} style={{ flex: 1, padding: "20px 22px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div style={{ flex: 1 }}>
