@@ -9,6 +9,7 @@ export function useGoals() {
   const [deletedCompletedToday, setDeletedCompletedToday] = useState(0);
   const [lifetimeGoalsCompleted, setLifetimeGoalsCompleted] = useState(0);
   const [lifetimeGoalsMissed, setLifetimeGoalsMissed] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { refreshUser } = useAuthContext();
 
@@ -18,7 +19,20 @@ export function useGoals() {
 
   async function fetchGoals() {
     try {
+      setError(null);
       const res = await apiFetch("/api/goals");
+
+      if (!res.ok) {
+        let message = "Failed to load goals";
+        try {
+          const payload = await res.json();
+          message = payload?.error || payload?.message || message;
+        } catch {
+          // Keep fallback message.
+        }
+        throw new Error(message);
+      }
+
       const data = await res.json();
 
       const goalsPayload = Array.isArray(data) ? data : data.goals ?? [];
@@ -44,35 +58,59 @@ export function useGoals() {
       setLifetimeGoalsMissed(Number.isFinite(lifetimeMissed) ? lifetimeMissed : 0);
     } catch (err) {
       console.error("Failed to load goals", err);
+      setError(err instanceof Error ? err.message : "Failed to load goals");
     } finally {
       setLoading(false);
     }
   }
 
   async function addGoal(title: string, type: GoalType) {
+    setError(null);
+
     const res = await apiFetch("/api/goals", {
       method: "POST",
       body: JSON.stringify({ title, type }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      let message = "Failed to create goal";
+      try {
+        const payload = await res.json();
+        message = payload?.error || payload?.message || message;
+      } catch {
+        // Keep fallback message.
+      }
+      setError(message);
+      return null;
+    }
 
     const newGoal = await res.json();
 
     setGoals((g) => [
+      newGoal && typeof newGoal.id === "number"
+        ? {
+          id: newGoal.id,
+          title: newGoal.title,
+          type: newGoal.type,
+          tasks: [],
+        }
+        : {
+          id: Date.now(),
+          title,
+          type,
+          tasks: [],
+        },
       ...g,
-      {
-        id: newGoal.id,
-        title: newGoal.title,
-        type: newGoal.type,
-        tasks: [],
-      },
     ]);
+
+    // Sync with server in case of additional backend-side ordering/filters.
+    await fetchGoals();
 
     return newGoal;
   }
 
   async function addTask(goalId: number, text: string, focusMinutes?: number) {
+    setError(null);
     if (!text.trim()) return;
 
     const res = await apiFetch("/api/tasks", {
@@ -84,7 +122,17 @@ export function useGoals() {
       }),
     });
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      let message = "Failed to add task";
+      try {
+        const payload = await res.json();
+        message = payload?.error || payload?.message || message;
+      } catch {
+        // Keep fallback message.
+      }
+      setError(message);
+      return;
+    }
 
     const newTask = await res.json();
 
@@ -130,7 +178,15 @@ export function useGoals() {
       });
 
       if (!res.ok) {
-        console.error("Failed to toggle task", res.status, await res.text());
+        let message = "Failed to toggle task";
+        try {
+          const payload = await res.json();
+          message = payload?.error || payload?.message || message;
+        } catch {
+          // Keep fallback message.
+        }
+        setError(message);
+        console.error("Failed to toggle task", res.status, message);
         return;
       }
 
@@ -172,6 +228,7 @@ export function useGoals() {
       );
     } catch (error) {
       console.error("Error toggling task", error);
+      setError("Error toggling task");
     }
   }
 
@@ -182,6 +239,14 @@ export function useGoals() {
       });
 
       if (!res.ok) {
+        let message = "Failed to delete task";
+        try {
+          const payload = await res.json();
+          message = payload?.error || payload?.message || message;
+        } catch {
+          // Keep fallback message.
+        }
+        setError(message);
         console.error("Failed to delete task", res.status);
         return;
       }
@@ -198,6 +263,7 @@ export function useGoals() {
       );
     } catch (error) {
       console.error("Error deleting task:", error);
+      setError("Error deleting task");
     }
   }
 
@@ -209,7 +275,17 @@ export function useGoals() {
       method: "DELETE",
     });
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      let message = "Failed to delete goal";
+      try {
+        const payload = await res.json();
+        message = payload?.error || payload?.message || message;
+      } catch {
+        // Keep fallback message.
+      }
+      setError(message);
+      return;
+    }
 
     setGoals((gs) => gs.filter((g) => g.id !== goalId));
     if (wasCompleted) {
@@ -228,6 +304,7 @@ export function useGoals() {
   return {
     goals,
     loading,
+    error,
     addGoal,
     addTask,
     toggleTask,
@@ -237,5 +314,6 @@ export function useGoals() {
     lifetimeGoalsCompleted,
     lifetimeGoalsMissed,
     avgProgress,
+    refetchGoals: fetchGoals,
   };
 }

@@ -5,11 +5,8 @@ type ApiFetchOptions = RequestInit & {
 };
 
 export function getApiBase() {
-  return API_BASE?.trim()
-    ? API_BASE
-    : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-      ? "http://localhost:5000"
-      : window.location.origin;
+  // Prefer explicit override, otherwise always use same-origin Next API routes.
+  return API_BASE?.trim() ? API_BASE : window.location.origin;
 }
 
 export function resolveApiUrl(path: string) {

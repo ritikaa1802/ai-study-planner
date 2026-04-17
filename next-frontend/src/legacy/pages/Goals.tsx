@@ -27,6 +27,7 @@ interface GoalsProps {
 export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const {
     goals,
+    error,
     addGoal,
     toggleTask,
     addTask,
@@ -46,33 +47,42 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [newTaskMinutes, setNewTaskMinutes] = useState<Record<number, string>>({});
   const [typeOpen, setTypeOpen] = useState(false);
   const [showPomodoroPrompt, setShowPomodoroPrompt] = useState(false);
+  const [isCreatingGoal, setIsCreatingGoal] = useState(false);
 
 
   /* -------- ADD GOAL FUNCTION -------- */
 
   async function handleAddGoal() {
-    if (!newTitle.trim() || !newType) return;
+    if (!newTitle.trim() || !newType || isCreatingGoal) return;
 
-    const createdGoal = await addGoal(newTitle, newType);
+    setIsCreatingGoal(true);
 
-    if (createdGoal && !localStorage.getItem("goal_pomodoro_prompt_seen")) {
-      try {
-        const sessionRes = await apiFetch("/api/sessions");
-        if (sessionRes.ok) {
-          const sessions = await sessionRes.json();
-          if (Array.isArray(sessions) && sessions.length === 0) {
-            setShowPomodoroPrompt(true);
-            localStorage.setItem("goal_pomodoro_prompt_seen", "true");
+    try {
+      const createdGoal = await addGoal(newTitle, newType);
+
+      if (createdGoal && !localStorage.getItem("goal_pomodoro_prompt_seen")) {
+        try {
+          const sessionRes = await apiFetch("/api/sessions");
+          if (sessionRes.ok) {
+            const sessions = await sessionRes.json();
+            if (Array.isArray(sessions) && sessions.length === 0) {
+              setShowPomodoroPrompt(true);
+              localStorage.setItem("goal_pomodoro_prompt_seen", "true");
+            }
           }
+        } catch (error) {
+          console.error("Failed to check study sessions", error);
         }
-      } catch (error) {
-        console.error("Failed to check study sessions", error);
       }
-    }
 
-    setNewTitle("");
-    setNewType("");
-    setShowModal(false);
+      setNewTitle("");
+      setNewType("");
+      if (createdGoal) {
+        setShowModal(false);
+      }
+    } finally {
+      setIsCreatingGoal(false);
+    }
   }
 
 
@@ -142,6 +152,12 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           <Ic d={ICONS.plus} size={16} color="#fff" sw={2.5} /> New Goal
         </button>
       </div>
+
+      {error && (
+        <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: `1px solid ${C.red}55`, background: `${C.red}11`, color: C.red, fontSize: 13, fontWeight: 600 }}>
+          {error}
+        </div>
+      )}
 
       {goals.map((goal) => {
         const pct = getGoalProgress(goal);
@@ -301,9 +317,9 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
             <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleAddGoal} disabled={!newTitle.trim() || !newType}
-              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || !newType ? C.border : C.accent, color: !newTitle.trim() || !newType ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || !newType ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-              Create Goal
+            <button onClick={handleAddGoal} disabled={!newTitle.trim() || !newType || isCreatingGoal}
+              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || !newType || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || !newType || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || !newType || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+              {isCreatingGoal ? "Creating..." : "Create Goal"}
             </button>
           </div>
         </Modal>

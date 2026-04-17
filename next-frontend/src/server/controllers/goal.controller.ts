@@ -7,9 +7,25 @@ export const createGoal = async (ctx: ServerContext) => {
     const { title, type, studyCircleId } = ctx.body ?? {};
     const userId = ctx.userId as number;
 
+    const allowedTypes = [
+      "BRAIN_GAINS",
+      "MONEY_MOVES",
+      "MAIN_CHARACTER_ENERGY",
+      "COOKING_PROJECTS",
+      "LOCK_IN_MODE",
+    ];
+
+    if (typeof title !== "string" || !title.trim()) {
+      return json(400, { error: "Goal title is required" });
+    }
+
+    if (typeof type !== "string" || !allowedTypes.includes(type)) {
+      return json(400, { error: "Invalid goal type" });
+    }
+
     const goal = await prisma.goal.create({
       data: {
-        title,
+        title: title.trim(),
         type,
         studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
         userId,
