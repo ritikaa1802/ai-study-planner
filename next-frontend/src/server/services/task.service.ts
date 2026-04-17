@@ -2,10 +2,28 @@ import { prisma } from "../prisma";
 import { checkAndUnlockAchievements, getUserAchievementStats } from "./achievement.service";
 
 export const recalculateGoalProgress = async (goalId: number) => {
-  const goalBefore = await prisma.goal.findUnique({
-    where: { id: goalId },
-    select: { id: true, userId: true, progress: true, completedAt: true, completionCounted: true },
-  });
+  let goalBefore:
+    | {
+        id: number;
+        userId: number;
+        progress: number;
+        completedAt?: Date | null;
+        completionCounted?: boolean;
+      }
+    | null = null;
+
+  try {
+    goalBefore = await prisma.goal.findUnique({
+      where: { id: goalId },
+      select: { id: true, userId: true, progress: true, completedAt: true, completionCounted: true },
+    });
+  } catch {
+    // Fallback for environments without lifetime goal columns.
+    goalBefore = await prisma.goal.findUnique({
+      where: { id: goalId },
+      select: { id: true, userId: true, progress: true },
+    });
+  }
 
   if (!goalBefore) {
     return;
@@ -30,7 +48,8 @@ export const recalculateGoalProgress = async (goalId: number) => {
       : null;
 
   const becameCompleted = goalBefore.progress < 100 && progress >= 100;
-  const shouldCountLifetimeCompleted = becameCompleted && !goalBefore.completionCounted;
+  const supportsLifetimeGoalFields = typeof goalBefore.completionCounted === "boolean";
+  const shouldCountLifetimeCompleted = becameCompleted && supportsLifetimeGoalFields && !goalBefore.completionCounted;
 
   if (shouldCountLifetimeCompleted) {
     await prisma.$transaction([
@@ -44,10 +63,18 @@ export const recalculateGoalProgress = async (goalId: number) => {
       }),
     ]);
   } else {
-    await prisma.goal.update({
-      where: { id: goalId },
-      data: { progress, completedAt },
-    });
+    try {
+      await prisma.goal.update({
+        where: { id: goalId },
+        data: { progress, completedAt },
+      });
+    } catch {
+      // Fallback for schemas without completedAt column.
+      await prisma.goal.update({
+        where: { id: goalId },
+        data: { progress },
+      });
+    }
   }
 
   if (becameCompleted) {

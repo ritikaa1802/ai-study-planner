@@ -24,6 +24,9 @@ export const createTask = async (ctx: ServerContext) => {
         id: Number(goalId),
         userId,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (!goal) {
@@ -69,6 +72,9 @@ export const createTasksBulk = async (ctx: ServerContext) => {
       where: {
         id: Number(goalId),
         userId,
+      },
+      select: {
+        id: true,
       },
     });
 
@@ -121,6 +127,9 @@ export const getTasksByGoal = async (ctx: ServerContext) => {
       where: {
         id: Number(goalId),
         userId,
+      },
+      select: {
+        id: true,
       },
     });
 

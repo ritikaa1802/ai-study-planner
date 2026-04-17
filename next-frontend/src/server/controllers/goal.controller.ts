@@ -30,6 +30,11 @@ export const createGoal = async (ctx: ServerContext) => {
         studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
         userId,
       },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+      },
     });
 
     return json(201, goal);
@@ -49,8 +54,18 @@ export const getGoals = async (ctx: ServerContext) => {
       where: {
         userId,
       },
-      include: {
-        tasks: true,
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        tasks: {
+          select: {
+            id: true,
+            title: true,
+            completed: true,
+            focusMinutes: true,
+          },
+        },
       },
     });
 
@@ -126,6 +141,9 @@ export const updateGoal = async (ctx: ServerContext) => {
         id: Number(id),
         userId,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (!goal) {
@@ -135,6 +153,11 @@ export const updateGoal = async (ctx: ServerContext) => {
     const updatedGoal = await prisma.goal.update({
       where: { id: Number(id) },
       data: { title, type },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+      },
     });
 
     return json(200, updatedGoal);
@@ -153,6 +176,10 @@ export const deleteGoal = async (ctx: ServerContext) => {
       where: {
         id: Number(id),
         userId,
+      },
+      select: {
+        id: true,
+        progress: true,
       },
     });
 
@@ -188,6 +215,11 @@ export const getGoalById = async (ctx: ServerContext) => {
       where: {
         id: Number(id),
         userId,
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
       },
     });
 
