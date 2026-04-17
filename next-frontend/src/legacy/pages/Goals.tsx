@@ -127,7 +127,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 13, color: C.muted, marginBottom: 8, fontWeight: 500 }}>{l}</div>
-                <div style={{ fontSize: 30, fontWeight: 700, color: C.text }}>{v}</div>
+                <div style={{ fontSize: 34, fontWeight: 700, color: C.text, marginTop: 4 }}>{v}</div>
               </div>
               <div style={{ width: 48, height: 48, borderRadius: 14, background: C.accentBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Ic d={icon} size={22} color={C.accent} />
