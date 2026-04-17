@@ -15,9 +15,10 @@ function Ic({ d, size = 18, color = "currentColor", sw = 1.8 }: { d: string; siz
 interface HeaderProps {
   C: Theme;
   onMenuToggle?: () => void;
+  showMenuButton?: boolean;
 }
 
-export function Navbar({ C, onMenuToggle }: HeaderProps) {
+export function Navbar({ C, onMenuToggle, showMenuButton = false }: HeaderProps) {
   const { user } = useAuthContext();
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs] = useState<Notification[]>([]);
@@ -53,14 +54,16 @@ export function Navbar({ C, onMenuToggle }: HeaderProps) {
     >
       {/* Left: date */}
       <div className="flex min-w-0 items-center gap-2">
-        <button
-          onClick={onMenuToggle}
-          className="flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
-          aria-label="Open menu"
-          style={{ borderColor: C.border, background: C.inputBg, color: C.text }}
-        >
-          <Ic d="M3 6h18M3 12h18M3 18h18" size={16} color={C.text} sw={2.2} />
-        </button>
+        {showMenuButton && (
+          <button
+            onClick={onMenuToggle}
+            className="flex h-9 w-9 items-center justify-center rounded-md border"
+            aria-label="Open menu"
+            style={{ borderColor: C.border, background: C.inputBg, color: C.text }}
+          >
+            <Ic d="M3 6h18M3 12h18M3 18h18" size={16} color={C.text} sw={2.2} />
+          </button>
+        )}
         <Ic d={ICONS.calendar} size={15} color={C.muted} />
         <span className="hidden truncate text-xs font-medium sm:block" style={{ color: C.muted }}>{dateStr}</span>
       </div>

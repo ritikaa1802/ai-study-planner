@@ -40,6 +40,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   const [authed, setAuthed] = useState(false);
   const [dark, setDark] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -56,15 +57,17 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!mounted) return;
 
-    const closeOnDesktop = () => {
-      if (window.innerWidth >= 1024) {
+    const syncViewport = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      if (desktop) {
         setMobileNavOpen(false);
       }
     };
 
-    closeOnDesktop();
-    window.addEventListener("resize", closeOnDesktop);
-    return () => window.removeEventListener("resize", closeOnDesktop);
+    syncViewport();
+    window.addEventListener("resize", syncViewport);
+    return () => window.removeEventListener("resize", syncViewport);
   }, [mounted]);
 
   useEffect(() => {
@@ -119,33 +122,35 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             transition: "background 0.3s, color 0.3s",
           }}
         >
-          <div className="hidden lg:block">
+          {isDesktop ? (
             <Sidebar nav={NAV} page={page} setPage={navigateToPage} dark={dark} setDark={setDark} C={C} onLogout={handleLogout} />
-          </div>
+          ) : (
+            <>
+              {mobileNavOpen && (
+                <button
+                  className="fixed inset-0 z-30 bg-black/35"
+                  aria-label="Close navigation"
+                  onClick={() => setMobileNavOpen(false)}
+                />
+              )}
 
-          {mobileNavOpen && (
-            <button
-              className="fixed inset-0 z-30 bg-black/35 lg:hidden"
-              aria-label="Close navigation"
-              onClick={() => setMobileNavOpen(false)}
-            />
+              <Sidebar
+                nav={NAV}
+                page={page}
+                setPage={navigateToPage}
+                dark={dark}
+                setDark={setDark}
+                C={C}
+                onLogout={handleLogout}
+                mobile
+                open={mobileNavOpen}
+                onClose={() => setMobileNavOpen(false)}
+              />
+            </>
           )}
 
-          <Sidebar
-            nav={NAV}
-            page={page}
-            setPage={navigateToPage}
-            dark={dark}
-            setDark={setDark}
-            C={C}
-            onLogout={handleLogout}
-            mobile
-            open={mobileNavOpen}
-            onClose={() => setMobileNavOpen(false)}
-          />
-
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden" style={{ flex: 1 }}>
-            <Navbar C={C} onMenuToggle={() => setMobileNavOpen((v) => !v)} />
+            <Navbar C={C} onMenuToggle={() => setMobileNavOpen((v) => !v)} showMenuButton={!isDesktop} />
             <div className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
           </div>
         </div>
