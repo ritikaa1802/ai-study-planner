@@ -108,12 +108,12 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
             <Ic d={ICONS.target} size={18} color={C.accent} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div style={{ borderRadius: 10, padding: "10px 12px", background: `${C.green}18`, border: `1px solid ${C.green}44` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.green, marginBottom: 4 }}>Completed</div>
+            <div style={{ borderRadius: 10, padding: "10px 12px", background: C.inputBg, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Completed</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: C.green }}>{lifetimeGoalsCompleted}</div>
             </div>
-            <div style={{ borderRadius: 10, padding: "10px 12px", background: `${C.red}15`, border: `1px solid ${C.red}44` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.red, marginBottom: 4 }}>Missed</div>
+            <div style={{ borderRadius: 10, padding: "10px 12px", background: C.inputBg, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, marginBottom: 4 }}>Missed</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: C.red }}>{lifetimeGoalsMissed}</div>
             </div>
           </div>
