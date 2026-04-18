@@ -112,31 +112,36 @@ export const joinStudyCircle = async (ctx: ServerContext) => {
 export const getCircleLeaderboard = async (ctx: ServerContext) => {
   try {
     const circleId = Number(ctx.params?.id);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    if (!Number.isFinite(circleId) || circleId <= 0) {
+      return json(400, { error: "Invalid circle id" });
+    }
 
     const memberships = await prisma.studyCircleMembership.findMany({
       where: { studyCircleId: circleId },
       include: { user: { select: { id: true, name: true, avatar: true } } },
     });
 
-    const userIds = memberships.map((m) => m.userId);
-
-    const activities = await prisma.dailyActivity.groupBy({
+    // Use real circle goal-task data so new circles start from zero activity.
+    const completedTasks = await prisma.task.groupBy({
       by: ["userId"],
       where: {
-        userId: { in: userIds },
-        date: { gte: sevenDaysAgo },
+        completed: true,
+        goal: {
+          studyCircleId: circleId,
+        },
       },
-      _sum: { count: true },
+      _count: {
+        _all: true,
+      },
     });
 
     const leaderboard = memberships
       .map((m) => {
-        const userAct = activities.find((a) => a.userId === m.userId);
+        const userTaskCount = completedTasks.find((a) => a.userId === m.userId);
         return {
           user: m.user,
-          tasksCompleted: userAct?._sum.count || 0,
+          tasksCompleted: userTaskCount?._count._all || 0,
         };
       })
       .sort((a, b) => b.tasksCompleted - a.tasksCompleted);

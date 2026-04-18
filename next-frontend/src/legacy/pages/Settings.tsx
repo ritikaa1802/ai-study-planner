@@ -151,6 +151,7 @@ export function StudyCircle({ C }: StudyCircleProps) {
   const [form, setForm] = useState({ name: "", description: "", inviteCode: "" });
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [personalGoals, setPersonalGoals] = useState<Array<{ id: number; title: string }>>([]);
 
   const [activeCircleId, setActiveCircleId] = useState<number | null>(null);
   
@@ -167,18 +168,61 @@ export function StudyCircle({ C }: StudyCircleProps) {
     if (activeCircleId) refreshAll();
   }, [activeCircleId, refreshAll]);
 
+  useEffect(() => {
+    if (!activeCircleId) return;
+
+    const loadPersonalGoals = async () => {
+      try {
+        const res = await apiFetch("/api/goals");
+        if (!res.ok) return;
+        const payload = await res.json();
+        const list = Array.isArray(payload) ? payload : payload?.goals ?? [];
+        setPersonalGoals(
+          list
+            .filter((g: any) => g && typeof g.id === "number" && typeof g.title === "string")
+            .map((g: any) => ({ id: g.id, title: g.title }))
+        );
+      } catch {
+        // Keep schedule goal options best-effort only.
+      }
+    };
+
+    loadPersonalGoals();
+  }, [activeCircleId]);
+
   const [msgInput, setMsgInput] = useState("");
   const handleSend = () => { if (msgInput.trim()) { sendMessage(msgInput); setMsgInput(""); } };
 
-  const [goalForm, setGoalForm] = useState({ title: "", type: "Study" });
+  const [goalForm, setGoalForm] = useState({ title: "", type: "BRAIN_GAINS" });
   const handleCreateGroupGoal = async () => {
     if (!goalForm.title.trim() || !activeCircleId) return;
     await apiFetch("/api/goals", { method: "POST", body: JSON.stringify({ title: goalForm.title, type: goalForm.type, studyCircleId: activeCircleId }) });
-    setGoalForm({ title: "", type: "Study" });
+    setGoalForm({ title: "", type: "BRAIN_GAINS" });
     fetchGoals();
   };
 
   const [scheduleGoalId, setScheduleGoalId] = useState("");
+
+  useEffect(() => {
+    setScheduleGoalId("");
+  }, [activeCircleId]);
+
+  const scheduleGoalOptions = [
+    ...goals.map((g) => ({
+      key: `shared:${g.id}`,
+      label: `${g.title} (Shared)`,
+      title: g.title,
+    })),
+    ...personalGoals
+      .filter((g) => !goals.some((sg) => sg.id === g.id))
+      .map((g) => ({
+        key: `personal:${g.id}`,
+        label: `${g.title} (My Goal)`,
+        title: g.title,
+      })),
+  ];
+
+  const selectedScheduleGoal = scheduleGoalOptions.find((g) => g.key === scheduleGoalId);
 
   const handleCreate = async () => {
     if (!form.name.trim()) return;
@@ -235,7 +279,7 @@ export function StudyCircle({ C }: StudyCircleProps) {
           {tab === "Dashboard" && (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 md:gap-5">
               <Card C={C}>
-                <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Weekly Leaderboard 🔥</h3>
+                <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Circle Leaderboard 🔥</h3>
                 {leaderboard.length === 0 && <span style={{ color: C.muted, fontSize: 13 }}>No study activity yet.</span>}
                 {leaderboard.map((lb, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
@@ -306,9 +350,9 @@ export function StudyCircle({ C }: StudyCircleProps) {
                  <div className="flex flex-wrap gap-2 sm:gap-3">
                      <select value={scheduleGoalId} onChange={e => setScheduleGoalId(e.target.value)} style={{ flex: "1 1 220px", padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}>
                          <option value="">Select Target Goal (Optional)</option>
-                         {goals.map(g => <option key={g.id} value={g.title}>{g.title}</option>)}
+                       {scheduleGoalOptions.map(g => <option key={g.key} value={g.key}>{g.label}</option>)}
                      </select>
-                     <button onClick={() => addSchedule(scheduleGoalId ? `[Goal: ${scheduleGoalId}] Study Session` : "Group Study Block", new Date().toISOString(), new Date(Date.now() + 7200000).toISOString())} style={{ minHeight: 38, background: C.accent, color: "#fff", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>+ Add Schedule (Next 2 Hours)</button>
+                     <button onClick={() => addSchedule(selectedScheduleGoal ? `[Goal: ${selectedScheduleGoal.title}] Study Session` : "Group Study Block", new Date().toISOString(), new Date(Date.now() + 7200000).toISOString())} style={{ minHeight: 38, background: C.accent, color: "#fff", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>+ Add Schedule (Next 2 Hours)</button>
                  </div>
                </div>
             </Card>
