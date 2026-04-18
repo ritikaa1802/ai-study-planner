@@ -119,6 +119,7 @@ Note: Although the app behaves like a typical MERN-style product, the current ba
 - Plans are output in a predictable structure for reliable rendering and interaction.
 - Designed to convert vague goals into actionable weekly/day-level steps.
 - Includes response-handling safeguards to keep UX stable even when model output varies.
+- Requires `GROQ_API_KEY` in the Next frontend runtime environment; without it, planner intentionally falls back to a mock plan.
 
 ### UX Prompts / Guidance
 
