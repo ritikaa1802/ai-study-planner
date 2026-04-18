@@ -42,20 +42,20 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [showModal, setShowModal] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
-  const [newType, setNewType] = useState<GoalType>("BRAIN_GAINS");
+  const [newType, setNewType] = useState<GoalType | "">("");
   const [newTaskText, setNewTaskText] = useState<Record<number, string>>({});
   const [newTaskMinutes, setNewTaskMinutes] = useState<Record<number, string>>({});
   const [typeOpen, setTypeOpen] = useState(false);
   const [showPomodoroPrompt, setShowPomodoroPrompt] = useState(false);
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const displayError = error && !/^failed to /i.test(error) ? error : null;
-  const canCreateGoal = !!newTitle.trim() && !isCreatingGoal;
+  const canCreateGoal = !!newTitle.trim() && !!newType && !isCreatingGoal;
 
 
   /* -------- ADD GOAL FUNCTION -------- */
 
   async function handleAddGoal() {
-    if (!newTitle.trim() || isCreatingGoal) return;
+    if (!newTitle.trim() || !newType || isCreatingGoal) return;
 
     setIsCreatingGoal(true);
 
@@ -78,7 +78,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
       }
 
       setNewTitle("");
-      setNewType("BRAIN_GAINS");
+      setNewType("");
       if (createdGoal) {
         setShowModal(false);
       }
@@ -150,7 +150,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
       </div>
 
       <div className="mb-4 flex justify-end">
-        <button onClick={() => { setNewType("BRAIN_GAINS"); setTypeOpen(false); setShowModal(true); }} style={{ display: "flex", alignItems: "center", gap: 8, background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={() => { setNewType(""); setTypeOpen(false); setShowModal(true); }} style={{ display: "flex", alignItems: "center", gap: 8, background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
           <Ic d={ICONS.plus} size={16} color="#fff" sw={2.5} /> New Goal
         </button>
       </div>
@@ -299,7 +299,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           <label style={{ fontSize: 13, fontWeight: 600, color: C.muted, display: "block", marginBottom: 6 }}>Goal Type</label>
           <div style={{ position: "relative" }}>
             <div onClick={() => setTypeOpen((o) => !o)} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${typeOpen ? C.accent : C.border}`, background: C.inputBg, color: newType ? C.text : C.muted, fontSize: 14, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>{GOAL_TYPES.find((t) => t.key === newType)?.label ?? "🧠 Brain Gains"}</span>
+              <span>{newType ? GOAL_TYPES.find((t) => t.key === newType)?.label : "Select a type..."}</span>
               <span style={{ fontSize: 11, color: C.muted }}>{typeOpen ? "▲" : "▼"}</span>
             </div>
             {typeOpen && (
@@ -317,11 +317,6 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
               </div>
             )}
           </div>
-          {!newTitle.trim() && (
-            <p style={{ margin: "10px 2px 0", fontSize: 12, color: C.muted }}>
-              Goal Type is already selected. Enter a Goal Title to enable Create Goal.
-            </p>
-          )}
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
             <button onClick={() => { setTypeOpen(false); setShowModal(false); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
             <button onClick={handleAddGoal} disabled={!canCreateGoal}
