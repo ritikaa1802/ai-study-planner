@@ -151,7 +151,6 @@ export function StudyCircle({ C }: StudyCircleProps) {
   const [form, setForm] = useState({ name: "", description: "", inviteCode: "" });
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
-  const [personalGoals, setPersonalGoals] = useState<Array<{ id: number; title: string }>>([]);
 
   const [activeCircleId, setActiveCircleId] = useState<number | null>(null);
   
@@ -168,28 +167,6 @@ export function StudyCircle({ C }: StudyCircleProps) {
     if (activeCircleId) refreshAll();
   }, [activeCircleId, refreshAll]);
 
-  useEffect(() => {
-    if (!activeCircleId) return;
-
-    const loadPersonalGoals = async () => {
-      try {
-        const res = await apiFetch("/api/goals");
-        if (!res.ok) return;
-        const payload = await res.json();
-        const list = Array.isArray(payload) ? payload : payload?.goals ?? [];
-        setPersonalGoals(
-          list
-            .filter((g: any) => g && typeof g.id === "number" && typeof g.title === "string")
-            .map((g: any) => ({ id: g.id, title: g.title }))
-        );
-      } catch {
-        // Keep schedule goal options best-effort only.
-      }
-    };
-
-    loadPersonalGoals();
-  }, [activeCircleId]);
-
   const [msgInput, setMsgInput] = useState("");
   const handleSend = () => { if (msgInput.trim()) { sendMessage(msgInput); setMsgInput(""); } };
 
@@ -201,28 +178,26 @@ export function StudyCircle({ C }: StudyCircleProps) {
     fetchGoals();
   };
 
-  const [scheduleGoalId, setScheduleGoalId] = useState("");
+  const [scheduleTitle, setScheduleTitle] = useState("");
+  const [scheduleHours, setScheduleHours] = useState("2");
 
   useEffect(() => {
-    setScheduleGoalId("");
+    setScheduleTitle("");
+    setScheduleHours("2");
   }, [activeCircleId]);
 
-  const scheduleGoalOptions = [
-    ...goals.map((g) => ({
-      key: `shared:${g.id}`,
-      label: `${g.title} (Shared)`,
-      title: g.title,
-    })),
-    ...personalGoals
-      .filter((g) => !goals.some((sg) => sg.id === g.id))
-      .map((g) => ({
-        key: `personal:${g.id}`,
-        label: `${g.title} (My Goal)`,
-        title: g.title,
-      })),
-  ];
+  const scheduleDurationHours = Number(scheduleHours);
+  const hasValidDuration = Number.isFinite(scheduleDurationHours) && scheduleDurationHours > 0;
+  const canAddSchedule = !!scheduleTitle.trim() && hasValidDuration;
 
-  const selectedScheduleGoal = scheduleGoalOptions.find((g) => g.key === scheduleGoalId);
+  const handleAddSchedule = async () => {
+    if (!canAddSchedule) return;
+
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + scheduleDurationHours * 60 * 60 * 1000);
+    await addSchedule(scheduleTitle.trim(), startTime.toISOString(), endTime.toISOString());
+    setScheduleTitle("");
+  };
 
   const handleCreate = async () => {
     if (!form.name.trim()) return;
@@ -348,11 +323,28 @@ export function StudyCircle({ C }: StudyCircleProps) {
                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, background: C.inputBg, padding: 16, borderRadius: 12 }}>
                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>Schedule new block:</div>
                  <div className="flex flex-wrap gap-2 sm:gap-3">
-                     <select value={scheduleGoalId} onChange={e => setScheduleGoalId(e.target.value)} style={{ flex: "1 1 220px", padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}>
-                         <option value="">Select Target Goal (Optional)</option>
-                       {scheduleGoalOptions.map(g => <option key={g.key} value={g.key}>{g.label}</option>)}
-                     </select>
-                     <button onClick={() => addSchedule(selectedScheduleGoal ? `[Goal: ${selectedScheduleGoal.title}] Study Session` : "Group Study Block", new Date().toISOString(), new Date(Date.now() + 7200000).toISOString())} style={{ minHeight: 38, background: C.accent, color: "#fff", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>+ Add Schedule (Next 2 Hours)</button>
+                     <input
+                       value={scheduleTitle}
+                       onChange={(e) => setScheduleTitle(e.target.value)}
+                       placeholder="What do you want to schedule?"
+                       style={{ flex: "1 1 280px", padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}
+                     />
+                     <input
+                       value={scheduleHours}
+                       onChange={(e) => setScheduleHours(e.target.value)}
+                       type="number"
+                       min="0.5"
+                       step="0.5"
+                       placeholder="Hours"
+                       style={{ width: 110, padding: "8px 12px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, color: C.text }}
+                     />
+                     <button
+                       onClick={handleAddSchedule}
+                       disabled={!canAddSchedule}
+                       style={{ minHeight: 38, background: canAddSchedule ? C.accent : C.border, color: canAddSchedule ? "#fff" : C.muted, border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: canAddSchedule ? "pointer" : "not-allowed" }}
+                     >
+                       + Add Schedule
+                     </button>
                  </div>
                </div>
             </Card>
