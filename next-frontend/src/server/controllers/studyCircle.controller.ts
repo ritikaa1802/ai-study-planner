@@ -122,14 +122,24 @@ export const getCircleLeaderboard = async (ctx: ServerContext) => {
       include: { user: { select: { id: true, name: true, avatar: true } } },
     });
 
-    // Use real circle goal-task data so new circles start from zero activity.
+    const memberIds = memberships.map((m) => m.userId);
+
+    // Link circle dashboard to real member task data from Goals page.
+    const taskTotals = await prisma.task.groupBy({
+      by: ["userId"],
+      where: {
+        userId: { in: memberIds },
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
     const completedTasks = await prisma.task.groupBy({
       by: ["userId"],
       where: {
+        userId: { in: memberIds },
         completed: true,
-        goal: {
-          studyCircleId: circleId,
-        },
       },
       _count: {
         _all: true,
@@ -138,13 +148,20 @@ export const getCircleLeaderboard = async (ctx: ServerContext) => {
 
     const leaderboard = memberships
       .map((m) => {
+        const userTotals = taskTotals.find((a) => a.userId === m.userId);
         const userTaskCount = completedTasks.find((a) => a.userId === m.userId);
         return {
           user: m.user,
+          tasksTotal: userTotals?._count._all || 0,
           tasksCompleted: userTaskCount?._count._all || 0,
         };
       })
-      .sort((a, b) => b.tasksCompleted - a.tasksCompleted);
+      .sort((a, b) => {
+        if (b.tasksCompleted !== a.tasksCompleted) {
+          return b.tasksCompleted - a.tasksCompleted;
+        }
+        return b.tasksTotal - a.tasksTotal;
+      });
 
     return json(200, { leaderboard });
   } catch (error) {

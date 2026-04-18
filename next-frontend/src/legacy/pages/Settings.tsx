@@ -289,14 +289,14 @@ export function StudyCircle({ C }: StudyCircleProps) {
                       <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{lb.user.name.charAt(0).toUpperCase()}</div>
                       <span style={{ fontSize: 14, color: C.text, fontWeight: 600 }}>{lb.user.name} {lb.user.id === user?.id ? "(You)" : ""}</span>
                     </div>
-                    <span style={{ fontSize: 14, color: C.accent, fontWeight: 700 }}>{lb.tasksCompleted} Tasks</span>
+                    <span style={{ fontSize: 14, color: C.accent, fontWeight: 700 }}>{lb.tasksCompleted}/{lb.tasksTotal ?? 0} Done</span>
                   </div>
                 ))}
               </Card>
               <Card C={C}>
                 <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Circle Stats</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {[[activeCircle.members.length.toString(), "Members"], [(schedules?.length || 0).toString(), "Upcoming Sessions"], [leaderboard.reduce((a, b) => a + b.tasksCompleted, 0).toString(), "Total Tasks"], [(goals?.length || 0).toString(), "Shared Goals"]].map(([v, l]) => (
+                  {[[activeCircle.members.length.toString(), "Members"], [(schedules?.length || 0).toString(), "Upcoming Sessions"], [leaderboard.reduce((a, b) => a + (b.tasksTotal || 0), 0).toString(), "Total Tasks"], [(goals?.length || 0).toString(), "Shared Goals"]].map(([v, l]) => (
                     <div key={l} style={{ background: C.inputBg, borderRadius: 12, padding: "14px 16px" }}>
                       <div style={{ fontSize: 22, fontWeight: 700, color: C.statNum }}>{v}</div>
                       <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>{l}</div>
