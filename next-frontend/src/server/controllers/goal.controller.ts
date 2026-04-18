@@ -23,19 +23,38 @@ export const createGoal = async (ctx: ServerContext) => {
       return json(400, { error: "Invalid goal type" });
     }
 
-    const goal = await prisma.goal.create({
-      data: {
-        title: title.trim(),
-        type,
-        studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
-        userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        type: true,
-      },
-    });
+    let goal: { id: number; title: string; type: string };
+
+    try {
+      goal = await prisma.goal.create({
+        data: {
+          title: title.trim(),
+          type,
+          studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
+          userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+        },
+      });
+    } catch (error) {
+      // Fallback for databases that don't have optional/newer goal columns yet.
+      console.warn("Goal create fallback: retrying without optional fields", error);
+      goal = await prisma.goal.create({
+        data: {
+          title: title.trim(),
+          type,
+          userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+        },
+      });
+    }
 
     return json(201, goal);
   } catch (error) {
@@ -50,24 +69,82 @@ export const getGoals = async (ctx: ServerContext) => {
 
     await purgeExpiredCompletedGoals(userId);
 
-    const goals = await prisma.goal.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        type: true,
-        tasks: {
+    let goals: Array<{
+      id: number;
+      title: string;
+      type: string;
+      tasks: Array<{
+        id: number;
+        title: string;
+        completed: boolean;
+        focusMinutes?: number | null;
+      }>;
+    }> = [];
+
+    try {
+      goals = await prisma.goal.findMany({
+        where: {
+          userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          tasks: {
+            select: {
+              id: true,
+              title: true,
+              completed: true,
+              focusMinutes: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.warn("Goals fallback: focusMinutes unavailable", error);
+      try {
+        const fallbackGoals = await prisma.goal.findMany({
+          where: {
+            userId,
+          },
           select: {
             id: true,
             title: true,
-            completed: true,
-            focusMinutes: true,
+            type: true,
+            tasks: {
+              select: {
+                id: true,
+                title: true,
+                completed: true,
+              },
+            },
           },
-        },
-      },
-    });
+        });
+
+        goals = fallbackGoals.map((goal) => ({
+          ...goal,
+          tasks: goal.tasks.map((task) => ({
+            ...task,
+            focusMinutes: null,
+          })),
+        }));
+      } catch (fallbackError) {
+        console.warn("Goals fallback: tasks relation unavailable", fallbackError);
+        const minimalGoals = await prisma.goal.findMany({
+          where: { userId },
+          select: {
+            id: true,
+            title: true,
+            type: true,
+          },
+        });
+
+        goals = minimalGoals.map((goal) => ({
+          ...goal,
+          tasks: [],
+        }));
+      }
+    }
 
     let user: {
       deletedCompletedGoalsCount?: number;
