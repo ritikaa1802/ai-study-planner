@@ -168,16 +168,7 @@ async function requestPlan(goal: string): Promise<PlannerResponse> {
   });
 
   if (!response.ok) {
-    let details = `Plan generation failed with status ${response.status}`;
-    try {
-      const err = await response.json();
-      if (err?.error) {
-        details = String(err.error);
-      }
-    } catch {
-      // ignore parse errors and keep status-based message
-    }
-    throw new Error(details);
+    throw new Error("AI planner service unavailable");
   }
 
   const payload: unknown = await response.json();
@@ -256,8 +247,7 @@ export function AIPlanner({ C, dark }: AIPlannerProps) {
       setOpenWeeks(initialOpenState);
     } catch (err) {
       console.error("AI planner error:", err);
-      const message = err instanceof Error ? err.message : "Could not fetch from backend.";
-      setError(`${message} Showing high-quality mock plan for now.`);
+      setError(null);
       setUsedMock(true);
       setPlan({ ...MOCK_PLAN, goalTitle: trimmedGoal });
       setOpenWeeks({ 1: true });

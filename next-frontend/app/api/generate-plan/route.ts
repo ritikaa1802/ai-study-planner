@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!process.env.GROQ_API_KEY) {
-      return NextResponse.json({ error: "GROQ_API_KEY is not configured" }, { status: 500 });
+      return NextResponse.json({ error: "AI planner service is currently unavailable" }, { status: 503 });
     }
 
     const systemPrompt = `You are an expert study planning assistant.
