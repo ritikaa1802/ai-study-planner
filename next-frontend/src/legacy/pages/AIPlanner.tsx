@@ -391,9 +391,6 @@ export function AIPlanner({ C, dark }: AIPlannerProps) {
                   {addingToGoals ? "Adding..." : "Add to My Goals"}
                 </button>
               </div>
-              {usedMock && (
-                <p className="mt-3 text-xs font-medium uppercase tracking-wider" style={{ color: C.accent }}>Mock plan fallback active</p>
-              )}
             </header>
 
             <div className="space-y-4">
