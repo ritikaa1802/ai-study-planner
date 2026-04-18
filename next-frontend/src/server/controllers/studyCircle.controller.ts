@@ -253,3 +253,74 @@ export const createCircleSchedule = async (ctx: ServerContext) => {
     return json(500, { error: "Failed to create schedule" });
   }
 };
+
+export const startCircleSchedule = async (ctx: ServerContext) => {
+  try {
+    const circleId = Number(ctx.params?.id);
+    const scheduleId = Number(ctx.params?.scheduleId);
+
+    if (!Number.isFinite(circleId) || !Number.isFinite(scheduleId)) {
+      return json(400, { error: "Invalid schedule request" });
+    }
+
+    const schedule = await prisma.circleSchedule.findFirst({
+      where: {
+        id: scheduleId,
+        circleId,
+      },
+    });
+
+    if (!schedule) {
+      return json(404, { error: "Schedule not found" });
+    }
+
+    const originalDurationMs = Math.max(
+      1,
+      new Date(schedule.endTime).getTime() - new Date(schedule.startTime).getTime()
+    );
+
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + originalDurationMs);
+
+    const updated = await prisma.circleSchedule.update({
+      where: { id: scheduleId },
+      data: {
+        startTime,
+        endTime,
+      },
+    });
+
+    return json(200, { schedule: updated });
+  } catch (error) {
+    return json(500, { error: "Failed to start schedule" });
+  }
+};
+
+export const deleteCircleSchedule = async (ctx: ServerContext) => {
+  try {
+    const circleId = Number(ctx.params?.id);
+    const scheduleId = Number(ctx.params?.scheduleId);
+
+    if (!Number.isFinite(circleId) || !Number.isFinite(scheduleId)) {
+      return json(400, { error: "Invalid schedule request" });
+    }
+
+    const schedule = await prisma.circleSchedule.findFirst({
+      where: {
+        id: scheduleId,
+        circleId,
+      },
+      select: { id: true },
+    });
+
+    if (!schedule) {
+      return json(404, { error: "Schedule not found" });
+    }
+
+    await prisma.circleSchedule.delete({ where: { id: scheduleId } });
+
+    return json(200, { success: true });
+  } catch (error) {
+    return json(500, { error: "Failed to delete schedule" });
+  }
+};

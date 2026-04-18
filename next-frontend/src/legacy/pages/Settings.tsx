@@ -161,11 +161,30 @@ export function StudyCircle({ C }: StudyCircleProps) {
   const activeCircle = circles.find(c => c.id === activeCircleId) || null;
   const [tab, setTab] = useState("Dashboard");
 
-  const { leaderboard, goals, messages, schedules, sendMessage, deleteMessage, addSchedule, refreshAll, fetchGoals } = useCircleData(activeCircleId);
+  const { leaderboard, goals, messages, schedules, sendMessage, deleteMessage, addSchedule, startSchedule, deleteSchedule, refreshAll, fetchGoals, fetchSchedule } = useCircleData(activeCircleId);
+  const [nowTs, setNowTs] = useState(Date.now());
 
   useEffect(() => {
     if (activeCircleId) refreshAll();
   }, [activeCircleId, refreshAll]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowTs(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!activeCircleId || tab !== "Schedule") return;
+
+    const interval = setInterval(() => {
+      fetchSchedule();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [activeCircleId, tab, fetchSchedule]);
 
   const [msgInput, setMsgInput] = useState("");
   const handleSend = () => { if (msgInput.trim()) { sendMessage(msgInput); setMsgInput(""); } };
@@ -197,6 +216,14 @@ export function StudyCircle({ C }: StudyCircleProps) {
     const endTime = new Date(startTime.getTime() + scheduleDurationHours * 60 * 60 * 1000);
     await addSchedule(scheduleTitle.trim(), startTime.toISOString(), endTime.toISOString());
     setScheduleTitle("");
+  };
+
+  const formatDuration = (ms: number) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
   const handleCreate = async () => {
@@ -314,12 +341,56 @@ export function StudyCircle({ C }: StudyCircleProps) {
             <Card C={C}>
                <h3 style={{ margin: "0 0 14px", fontSize: 16, fontWeight: 700, color: C.text }}>Shared Timetable</h3>
                <p style={{ color: C.muted, fontSize: 13, marginBottom: 16 }}>Coordinate study blocks with your circle.</p>
-               {schedules.map((s, i) => (
-                 <div key={i} style={{ padding: "12px 14px", borderLeft: `3px solid ${C.accent}`, background: C.inputBg, marginBottom: 10, borderRadius: "0 8px 8px 0" }}>
-                   <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{s.title}</div>
-                   <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{new Date(s.startTime).toLocaleString()} - {new Date(s.endTime).toLocaleTimeString()}</div>
-                 </div>
-               ))}
+               {schedules.map((s) => {
+                 const startMs = new Date(s.startTime).getTime();
+                 const endMs = new Date(s.endTime).getTime();
+                 const isRunning = nowTs >= startMs && nowTs < endMs;
+                 const isUpcoming = nowTs < startMs;
+                 const isCompleted = nowTs >= endMs;
+                 const remainingMs = endMs - nowTs;
+
+                 return (
+                   <div key={s.id} style={{ padding: "12px 14px", borderLeft: `3px solid ${C.accent}`, background: C.inputBg, marginBottom: 10, borderRadius: "0 8px 8px 0" }}>
+                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                       <div>
+                         <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{s.title}</div>
+                         <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{new Date(s.startTime).toLocaleString()} - {new Date(s.endTime).toLocaleTimeString()}</div>
+                         {isRunning && (
+                           <div style={{ fontSize: 12, color: C.accent, marginTop: 6, fontWeight: 700 }}>
+                             Running: {formatDuration(remainingMs)} remaining
+                           </div>
+                         )}
+                         {isUpcoming && (
+                           <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>
+                             Starts in {formatDuration(startMs - nowTs)}
+                           </div>
+                         )}
+                         {isCompleted && (
+                           <div style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>
+                             Completed
+                           </div>
+                         )}
+                       </div>
+                       <div style={{ display: "flex", gap: 8 }}>
+                         {!isCompleted && (
+                           <button
+                             onClick={() => startSchedule(s.id)}
+                             style={{ background: C.accent, color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                           >
+                             Start Timer
+                           </button>
+                         )}
+                         <button
+                           onClick={() => deleteSchedule(s.id)}
+                           style={{ background: "transparent", color: C.red, border: `1px solid ${C.red}55`, borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                         >
+                           Delete
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               })}
                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 20, background: C.inputBg, padding: 16, borderRadius: 12 }}>
                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>Schedule new block:</div>
                  <div className="flex flex-wrap gap-2 sm:gap-3">

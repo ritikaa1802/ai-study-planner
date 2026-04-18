@@ -47,6 +47,18 @@ export function useCircleData(circleId: number | null) {
         await fetchSchedule();
     };
 
+    const startSchedule = async (scheduleId: number) => {
+        if (!circleId) return;
+        await apiFetch(`/api/study-circles/${circleId}/schedule/${scheduleId}`, { method: "PATCH" });
+        await fetchSchedule();
+    };
+
+    const deleteSchedule = async (scheduleId: number) => {
+        if (!circleId) return;
+        await apiFetch(`/api/study-circles/${circleId}/schedule/${scheduleId}`, { method: "DELETE" });
+        await fetchSchedule();
+    };
+
     const deleteMessage = async (msgId: number) => {
         if (!circleId) return;
         await apiFetch(`/api/study-circles/${circleId}/messages/${msgId}`, { method: "DELETE" });
@@ -62,7 +74,7 @@ export function useCircleData(circleId: number | null) {
 
     return {
         leaderboard, goals, messages, schedules,
-        sendMessage, deleteMessage, addSchedule, refreshAll,
-        fetchMessages, fetchGoals
+        sendMessage, deleteMessage, addSchedule, startSchedule, deleteSchedule, refreshAll,
+        fetchMessages, fetchGoals, fetchSchedule
     };
 }
