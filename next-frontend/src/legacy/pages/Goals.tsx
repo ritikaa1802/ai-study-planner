@@ -42,7 +42,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [showModal, setShowModal] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
-  const [newType, setNewType] = useState<GoalType | "">("BRAIN_GAINS");
+  const [newType, setNewType] = useState<GoalType>("BRAIN_GAINS");
   const [newTaskText, setNewTaskText] = useState<Record<number, string>>({});
   const [newTaskMinutes, setNewTaskMinutes] = useState<Record<number, string>>({});
   const [typeOpen, setTypeOpen] = useState(false);
@@ -54,7 +54,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   /* -------- ADD GOAL FUNCTION -------- */
 
   async function handleAddGoal() {
-    if (!newTitle.trim() || !newType || isCreatingGoal) return;
+    if (!newTitle.trim() || isCreatingGoal) return;
 
     setIsCreatingGoal(true);
 
@@ -149,7 +149,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
       </div>
 
       <div className="mb-4 flex justify-end">
-        <button onClick={() => setShowModal(true)} style={{ display: "flex", alignItems: "center", gap: 8, background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={() => { setNewType("BRAIN_GAINS"); setTypeOpen(false); setShowModal(true); }} style={{ display: "flex", alignItems: "center", gap: 8, background: C.accent, color: "#fff", border: "none", borderRadius: 12, padding: "10px 20px", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
           <Ic d={ICONS.plus} size={16} color="#fff" sw={2.5} /> New Goal
         </button>
       </div>
@@ -298,7 +298,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
           <label style={{ fontSize: 13, fontWeight: 600, color: C.muted, display: "block", marginBottom: 6 }}>Goal Type</label>
           <div style={{ position: "relative" }}>
             <div onClick={() => setTypeOpen((o) => !o)} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${typeOpen ? C.accent : C.border}`, background: C.inputBg, color: newType ? C.text : C.muted, fontSize: 14, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>{newType ? GOAL_TYPES.find((t) => t.key === newType)?.label : "Select a type..."}</span>
+              <span>{GOAL_TYPES.find((t) => t.key === newType)?.label ?? "🧠 Brain Gains"}</span>
               <span style={{ fontSize: 11, color: C.muted }}>{typeOpen ? "▲" : "▼"}</span>
             </div>
             {typeOpen && (
@@ -317,9 +317,9 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
             )}
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-            <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleAddGoal} disabled={!newTitle.trim() || !newType || isCreatingGoal}
-              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || !newType || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || !newType || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || !newType || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+            <button onClick={() => { setTypeOpen(false); setShowModal(false); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
+            <button onClick={handleAddGoal} disabled={!newTitle.trim() || isCreatingGoal}
+              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
               {isCreatingGoal ? "Creating..." : "Create Goal"}
             </button>
           </div>
