@@ -49,6 +49,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
   const [showPomodoroPrompt, setShowPomodoroPrompt] = useState(false);
   const [isCreatingGoal, setIsCreatingGoal] = useState(false);
   const displayError = error && !/^failed to /i.test(error) ? error : null;
+  const canCreateGoal = !!newTitle.trim() && !isCreatingGoal;
 
 
   /* -------- ADD GOAL FUNCTION -------- */
@@ -316,10 +317,15 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
               </div>
             )}
           </div>
+          {!newTitle.trim() && (
+            <p style={{ margin: "10px 2px 0", fontSize: 12, color: C.muted }}>
+              Goal Type is already selected. Enter a Goal Title to enable Create Goal.
+            </p>
+          )}
           <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
             <button onClick={() => { setTypeOpen(false); setShowModal(false); }} style={{ flex: 1, padding: 11, borderRadius: 12, border: `1px solid ${C.border}`, background: "transparent", color: C.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleAddGoal} disabled={!newTitle.trim() || isCreatingGoal}
-              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !newTitle.trim() || isCreatingGoal ? C.border : C.accent, color: !newTitle.trim() || isCreatingGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !newTitle.trim() || isCreatingGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+            <button onClick={handleAddGoal} disabled={!canCreateGoal}
+              style={{ flex: 2, padding: 11, borderRadius: 12, border: "none", background: !canCreateGoal ? C.border : C.accent, color: !canCreateGoal ? C.muted : "#fff", fontSize: 14, fontWeight: 700, cursor: !canCreateGoal ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
               {isCreatingGoal ? "Creating..." : "Create Goal"}
             </button>
           </div>
