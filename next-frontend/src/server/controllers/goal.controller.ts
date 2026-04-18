@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
 import { incrementDeletedCompletedGoalsToday, purgeExpiredCompletedGoals } from "../services/goal.service";
@@ -59,6 +60,12 @@ export const createGoal = async (ctx: ServerContext) => {
     return json(201, goal);
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return json(500, { error: "Database schema not initialized. Run Prisma db push/migrations on deployment." });
+    }
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return json(500, { error: "Database connection failed. Check DATABASE_URL in deployment env." });
+    }
     return json(500, { error: "Failed to create goal" });
   }
 };
@@ -203,6 +210,12 @@ export const getGoals = async (ctx: ServerContext) => {
     });
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return json(500, { error: "Database schema not initialized. Run Prisma db push/migrations on deployment." });
+    }
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return json(500, { error: "Database connection failed. Check DATABASE_URL in deployment env." });
+    }
     return json(500, { error: "Failed to fetch goals" });
   }
 };
