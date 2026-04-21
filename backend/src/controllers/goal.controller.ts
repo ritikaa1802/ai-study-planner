@@ -93,7 +93,7 @@ export const getGoals = async (req: any, res: any) => {
 export const updateGoal = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { title, type } = req.body;
+    const { title, type, isImportant } = req.body;
     const userId = req.userId;
 
     const goal = await prisma.goal.findFirst({
@@ -109,7 +109,11 @@ export const updateGoal = async (req: any, res: any) => {
 
     const updatedGoal = await (prisma.goal.update as any)({
       where: { id: Number(id) },
-      data: { title, type }
+      data: {
+        ...(typeof title === "string" ? { title } : {}),
+        ...(typeof type === "string" ? { type } : {}),
+        ...(typeof isImportant === "boolean" ? { isImportant } : {}),
+      }
     });
 
     res.json(updatedGoal);

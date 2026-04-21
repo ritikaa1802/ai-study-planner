@@ -65,6 +65,7 @@ model Goal {
   title         String
   type          String
   progress      Int          @default(0)
+  isImportant   Boolean      @default(false)
   completionCounted Boolean  @default(false)
   completedAt   DateTime?
   userId        Int
@@ -78,6 +79,17 @@ model Goal {
   @@index([studyCircleId])
   @@index([userId])
   @@map("goal")
+}
+
+model GoalStats {
+  id                     String   @id @default("global")
+  lifetimeGoalsCompleted Int      @default(0)
+  lifetimeGoalsMissed    Int      @default(0)
+  lastRunDate            DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("goalstats")
 }
 
 model Resource {

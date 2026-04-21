@@ -6,7 +6,6 @@ import { useAuthContext } from "../context/AuthContext";
 
 export function useGoals() {
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [deletedCompletedToday, setDeletedCompletedToday] = useState(0);
   const [lifetimeGoalsCompleted, setLifetimeGoalsCompleted] = useState(0);
   const [lifetimeGoalsMissed, setLifetimeGoalsMissed] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +35,6 @@ export function useGoals() {
       const data = await res.json();
 
       const goalsPayload = Array.isArray(data) ? data : data.goals ?? [];
-      const retainedCompleted = Array.isArray(data) ? 0 : Number(data.deletedCompletedGoalsToday ?? 0);
       const lifetimeCompleted = Array.isArray(data) ? 0 : Number(data.lifetimeGoalsCompleted ?? 0);
       const lifetimeMissed = Array.isArray(data) ? 0 : Number(data.lifetimeGoalsMissed ?? 0);
 
@@ -54,7 +52,6 @@ export function useGoals() {
       }));
 
       setGoals(mapped);
-      setDeletedCompletedToday(Number.isFinite(retainedCompleted) ? retainedCompleted : 0);
       setLifetimeGoalsCompleted(Number.isFinite(lifetimeCompleted) ? lifetimeCompleted : 0);
       setLifetimeGoalsMissed(Number.isFinite(lifetimeMissed) ? lifetimeMissed : 0);
     } catch (err) {
@@ -279,10 +276,18 @@ export function useGoals() {
   async function toggleGoalImportant(goalId: number, isImportant: boolean) {
     setError(null);
 
-    const res = await apiFetch(`/api/goals/${goalId}/important`, {
+    let res = await apiFetch(`/api/goals/${goalId}/important`, {
       method: "PATCH",
       body: JSON.stringify({ isImportant }),
     });
+
+    // Backward-compatible fallback for deployments that only support PATCH /api/goals/:id.
+    if (res.status === 404 || res.status === 405) {
+      res = await apiFetch(`/api/goals/${goalId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ isImportant }),
+      });
+    }
 
     if (!res.ok) {
       let message = "Failed to update goal importance";
@@ -301,7 +306,7 @@ export function useGoals() {
     );
   }
 
-  const completed = goals.filter((g) => getGoalProgress(g) === 100).length + deletedCompletedToday;
+  const completed = goals.filter((g) => getGoalProgress(g) === 100).length;
 
   const avgProgress = goals.length
     ? Math.round(

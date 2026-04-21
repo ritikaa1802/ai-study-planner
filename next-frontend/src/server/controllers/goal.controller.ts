@@ -1,11 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
-import { incrementDeletedCompletedGoalsToday, purgeExpiredCompletedGoals } from "../services/goal.service";
+import { getGoalStats } from "../services/goalLifecycle.service";
 
 export const createGoal = async (ctx: ServerContext) => {
   try {
-    const { title, type, studyCircleId } = ctx.body ?? {};
+    const { title, type, studyCircleId, isImportant } = ctx.body ?? {};
     const userId = ctx.userId as number;
 
     const allowedTypes = [
@@ -24,13 +24,14 @@ export const createGoal = async (ctx: ServerContext) => {
       return json(400, { error: "Invalid goal type" });
     }
 
-    let goal: { id: number; title: string; type: string };
+    let goal: { id: number; title: string; type: string; isImportant: boolean };
 
     try {
       goal = await prisma.goal.create({
         data: {
           title: title.trim(),
           type,
+          isImportant: Boolean(isImportant),
           studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
           userId,
         },
@@ -38,6 +39,7 @@ export const createGoal = async (ctx: ServerContext) => {
           id: true,
           title: true,
           type: true,
+          isImportant: true,
         },
       });
     } catch (error) {
@@ -47,12 +49,14 @@ export const createGoal = async (ctx: ServerContext) => {
         data: {
           title: title.trim(),
           type,
+          isImportant: Boolean(isImportant),
           userId,
         },
         select: {
           id: true,
           title: true,
           type: true,
+          isImportant: true,
         },
       });
     }
@@ -74,12 +78,11 @@ export const getGoals = async (ctx: ServerContext) => {
   try {
     const userId = ctx.userId as number;
 
-    await purgeExpiredCompletedGoals(userId);
-
     let goals: Array<{
       id: number;
       title: string;
       type: string;
+      isImportant: boolean;
       tasks: Array<{
         id: number;
         title: string;
@@ -97,6 +100,7 @@ export const getGoals = async (ctx: ServerContext) => {
           id: true,
           title: true,
           type: true,
+          isImportant: true,
           tasks: {
             select: {
               id: true,
@@ -118,6 +122,7 @@ export const getGoals = async (ctx: ServerContext) => {
             id: true,
             title: true,
             type: true,
+            isImportant: true,
             tasks: {
               select: {
                 id: true,
@@ -153,60 +158,12 @@ export const getGoals = async (ctx: ServerContext) => {
       }
     }
 
-    let user: {
-      deletedCompletedGoalsCount?: number;
-      deletedCompletedGoalsDate?: Date | null;
-      lifetimeGoalsCompleted?: number;
-      lifetimeGoalsMissed?: number;
-    } | null = null;
-
-    try {
-      user = await (prisma.user.findUnique as any)({
-        where: { id: userId },
-        select: {
-          deletedCompletedGoalsCount: true,
-          deletedCompletedGoalsDate: true,
-          lifetimeGoalsCompleted: true,
-          lifetimeGoalsMissed: true,
-        },
-      });
-    } catch (error) {
-      // Fallback for deployments where lifetime fields are not migrated yet.
-      console.warn("Goals fallback: lifetime counters unavailable", error);
-      try {
-        user = await (prisma.user.findUnique as any)({
-          where: { id: userId },
-          select: {
-            deletedCompletedGoalsCount: true,
-            deletedCompletedGoalsDate: true,
-          },
-        });
-      } catch (fallbackError) {
-        console.warn("Goals fallback: deleted-completed counters unavailable", fallbackError);
-        user = null;
-      }
-    }
-
-    const now = new Date();
-    const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const retainedDate = user?.deletedCompletedGoalsDate
-      ? new Date(Date.UTC(
-          user.deletedCompletedGoalsDate.getUTCFullYear(),
-          user.deletedCompletedGoalsDate.getUTCMonth(),
-          user.deletedCompletedGoalsDate.getUTCDate()
-        ))
-      : null;
-
-    const deletedCompletedGoalsToday =
-      retainedDate && retainedDate.getTime() === todayUtc.getTime()
-        ? user?.deletedCompletedGoalsCount ?? 0
-        : 0;
+    const stats = await getGoalStats();
 
     return json(200, {
       goals,
-      deletedCompletedGoalsToday,
-      lifetimeGoalsCompleted: Number(user?.lifetimeGoalsCompleted ?? 0),
-      lifetimeGoalsMissed: Number(user?.lifetimeGoalsMissed ?? 0),
+      lifetimeGoalsCompleted: Number(stats.lifetimeGoalsCompleted ?? 0),
+      lifetimeGoalsMissed: Number(stats.lifetimeGoalsMissed ?? 0),
     });
   } catch (error) {
     console.error(error);
@@ -223,7 +180,7 @@ export const getGoals = async (ctx: ServerContext) => {
 export const updateGoal = async (ctx: ServerContext) => {
   try {
     const { id } = ctx.params ?? {};
-    const { title, type } = ctx.body ?? {};
+    const { title, type, isImportant } = ctx.body ?? {};
     const userId = ctx.userId as number;
 
     const goal = await prisma.goal.findFirst({
@@ -242,11 +199,16 @@ export const updateGoal = async (ctx: ServerContext) => {
 
     const updatedGoal = await prisma.goal.update({
       where: { id: Number(id) },
-      data: { title, type },
+      data: {
+        ...(typeof title === "string" ? { title } : {}),
+        ...(typeof type === "string" ? { type } : {}),
+        ...(typeof isImportant === "boolean" ? { isImportant } : {}),
+      },
       select: {
         id: true,
         title: true,
         type: true,
+        isImportant: true,
       },
     });
 
@@ -285,10 +247,6 @@ export const deleteGoal = async (ctx: ServerContext) => {
       where: { id: Number(id) },
     });
 
-    if (goal.progress >= 100) {
-      await incrementDeletedCompletedGoalsToday(userId, 1);
-    }
-
     return json(200, { message: "Goal deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -310,6 +268,7 @@ export const getGoalById = async (ctx: ServerContext) => {
         id: true,
         title: true,
         type: true,
+        isImportant: true,
       },
     });
 
@@ -321,5 +280,45 @@ export const getGoalById = async (ctx: ServerContext) => {
   } catch (error) {
     console.error(error);
     return json(500, { error: "Failed to fetch goal" });
+  }
+};
+
+export const toggleGoalImportant = async (ctx: ServerContext) => {
+  try {
+    const { id } = ctx.params ?? {};
+    const userId = ctx.userId as number;
+    const { isImportant } = ctx.body ?? {};
+
+    if (typeof isImportant !== "boolean") {
+      return json(400, { error: "isImportant must be a boolean" });
+    }
+
+    const goal = await prisma.goal.findFirst({
+      where: {
+        id: Number(id),
+        userId,
+      },
+      select: { id: true },
+    });
+
+    if (!goal) {
+      return json(404, { error: "Goal not found" });
+    }
+
+    const updated = await prisma.goal.update({
+      where: { id: Number(id) },
+      data: { isImportant },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        isImportant: true,
+      },
+    });
+
+    return json(200, updated);
+  } catch (error) {
+    console.error(error);
+    return json(500, { error: "Failed to toggle goal importance" });
   }
 };

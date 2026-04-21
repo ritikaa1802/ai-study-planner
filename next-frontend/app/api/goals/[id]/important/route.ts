@@ -1,0 +1,26 @@
+import { NextRequest, NextResponse } from "next/server";
+import { goalController } from "@/server";
+import { requireUserId } from "../../../_lib/auth";
+
+type RouteParams = { params: { id: string } };
+
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  try {
+    const auth = requireUserId(req);
+    if (!auth.ok) {
+      return auth.response;
+    }
+
+    const body = await req.json();
+    const result = await goalController.toggleGoalImportant({
+      body,
+      params,
+      headers: Object.fromEntries(req.headers.entries()),
+      userId: auth.userId,
+    });
+
+    return NextResponse.json(result.body, { status: result.status });
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message ?? "Internal server error" }, { status: 500 });
+  }
+}
