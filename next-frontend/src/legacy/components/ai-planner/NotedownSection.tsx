@@ -19,33 +19,7 @@ interface NotedownSectionProps {
     dark: boolean;
 }
 
-const COLOR_MAP: Record<NoteColor, { lightBg: string; darkBg: string; lightBorder: string; darkBorder: string; lightText: string; darkText: string }> = {
-    yellow: {
-        lightBg: "rgba(245, 158, 11, 0.08)", darkBg: "rgba(251, 191, 36, 0.1)",
-        lightBorder: "rgba(245, 158, 11, 0.2)", darkBorder: "rgba(251, 191, 36, 0.15)",
-        lightText: "#b45309", darkText: "#fbbf24"
-    },
-    green: {
-        lightBg: "rgba(34, 197, 94, 0.08)", darkBg: "rgba(74, 222, 128, 0.1)",
-        lightBorder: "rgba(34, 197, 94, 0.2)", darkBorder: "rgba(74, 222, 128, 0.15)",
-        lightText: "#15803d", darkText: "#4ade80"
-    },
-    purple: {
-        lightBg: "rgba(123, 126, 200, 0.12)", darkBg: "rgba(139, 143, 232, 0.15)",
-        lightBorder: "rgba(123, 126, 200, 0.25)", darkBorder: "rgba(139, 143, 232, 0.25)",
-        lightText: "#5c5fb0", darkText: "#a8abf0"
-    },
-    pink: {
-        lightBg: "rgba(236, 72, 153, 0.08)", darkBg: "rgba(244, 114, 182, 0.1)",
-        lightBorder: "rgba(236, 72, 153, 0.2)", darkBorder: "rgba(244, 114, 182, 0.15)",
-        lightText: "#be185d", darkText: "#f472b6"
-    },
-    blue: {
-        lightBg: "rgba(59, 130, 246, 0.08)", darkBg: "rgba(96, 165, 250, 0.1)",
-        lightBorder: "rgba(59, 130, 246, 0.2)", darkBorder: "rgba(96, 165, 250, 0.15)",
-        lightText: "#1d4ed8", darkText: "#60a5fa"
-    },
-};
+const COLOR_MAP: Record<NoteColor, string> = { yellow: '#eab308', green: '#22c55e', purple: '#8b5cf6', pink: '#ec4899', blue: '#3b82f6' };
 
 const TAGS: NoteTag[] = ["Concept", "Formula", "To-do", "Reminder", "Other"];
 
@@ -211,10 +185,10 @@ export function NotedownSection({ C, dark }: NotedownSectionProps) {
                                         onClick={() => setNewColor(color)}
                                         className="w-6 h-6 rounded-full transition-transform"
                                         style={{
-                                            background: dark ? COLOR_MAP[color].darkBg : COLOR_MAP[color].lightBg,
+                                            background: COLOR_MAP[color],
                                             transform: newColor === color ? "scale(1.2)" : "scale(1)",
-                                            border: `1px solid ${dark ? COLOR_MAP[color].darkBorder : COLOR_MAP[color].lightBorder}`,
-                                            boxShadow: newColor === color ? (dark ? `0 0 0 2px ${C.text}` : `0 0 0 2px ${C.text}`) : "none",
+                                            border: `2px solid ${C.bg}`,
+                                            boxShadow: newColor === color ? `0 0 0 2px ${C.text}` : "none",
                                         }}
                                     />
                                 ))}
@@ -260,9 +234,10 @@ export function NotedownSection({ C, dark }: NotedownSectionProps) {
                             key={note.id}
                             className="break-inside-avoid w-full rounded-2xl p-5 relative group transition-all"
                             style={{
-                                background: dark ? COLOR_MAP[note.color].darkBg : COLOR_MAP[note.color].lightBg,
-                                color: dark ? COLOR_MAP[note.color].darkText : COLOR_MAP[note.color].lightText,
-                                border: `1px solid ${dark ? COLOR_MAP[note.color].darkBorder : COLOR_MAP[note.color].lightBorder}`
+                                background: C.card,
+                                color: C.text,
+                                border: `1px solid ${C.border}`,
+                                borderTop: `4px solid ${COLOR_MAP[note.color]}`
                             }}
                         >
                             <div className="flex items-start justify-between mb-3">
