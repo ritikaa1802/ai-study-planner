@@ -10,6 +10,7 @@ export * as resourceController from "./controllers/resource.controller";
 export * as studyCircleController from "./controllers/studyCircle.controller";
 export * as taskController from "./controllers/task.controller";
 export * as userController from "./controllers/user.controller";
+export * as noteController from "./controllers/note.controller";
 
 export * as taskService from "./services/task.service";
 export * as achievementService from "./services/achievement.service";

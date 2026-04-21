@@ -203,6 +203,7 @@ model User {
   userStudySessions     UserStudySession[]
   memberships           StudyCircleMembership[]
   tasks                 Task[]
+  notes                 Note[]
 
   @@map("user")
 }
@@ -223,4 +224,19 @@ model UserStudySession {
 enum user_role {
   USER
   ADMIN
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  text      String
+  tag       String
+  color     String
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], map: "Note_userId_fkey")
+
+  @@index([userId], map: "Note_userId_fkey")
+  @@map("note")
 }

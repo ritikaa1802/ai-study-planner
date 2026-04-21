@@ -1,15 +1,16 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Theme } from "../../types";
+import { apiFetch } from "../../utils/api";
 
 export type NoteTag = "Concept" | "Formula" | "To-do" | "Reminder" | "Other";
 export type NoteColor = "yellow" | "green" | "purple" | "pink" | "blue";
 
 export interface StickyNote {
-    id: string;
+    id: number;
     text: string;
     tag: NoteTag;
     color: NoteColor;
-    timestamp: string;
+    createdAt: string;
     isPinned: boolean;
 }
 
@@ -29,32 +30,8 @@ const COLOR_MAP: Record<NoteColor, { bg: string; darkBg: string; text: string; d
 const TAGS: NoteTag[] = ["Concept", "Formula", "To-do", "Reminder", "Other"];
 
 export function NotedownSection({ C, dark }: NotedownSectionProps) {
-    const [notes, setNotes] = useState<StickyNote[]>([
-        {
-            id: "1",
-            text: "Newton's 2nd Law: F = ma\n(Force equals mass times acceleration)",
-            tag: "Formula",
-            color: "yellow",
-            timestamp: new Date().toISOString(),
-            isPinned: true,
-        },
-        {
-            id: "2",
-            text: "Revise Chapter 4 and practice the end-of-chapter problems before Thursday's review session.",
-            tag: "Reminder",
-            color: "pink",
-            timestamp: new Date().toISOString(),
-            isPinned: false,
-        },
-        {
-            id: "3",
-            text: "Photosynthesis: Process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water.",
-            tag: "Concept",
-            color: "green",
-            timestamp: new Date().toISOString(),
-            isPinned: false,
-        },
-    ]);
+    const [notes, setNotes] = useState<StickyNote[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [isComposing, setIsComposing] = useState(false);
     const [newText, setNewText] = useState("");
@@ -62,29 +39,75 @@ export function NotedownSection({ C, dark }: NotedownSectionProps) {
     const [newColor, setNewColor] = useState<NoteColor>("yellow");
     const [filterTag, setFilterTag] = useState<NoteTag | "All">("All");
 
-    const saveNote = () => {
-        if (!newText.trim()) return;
-        const newNote: StickyNote = {
-            id: Date.now().toString(),
-            text: newText.trim(),
-            tag: newTag,
-            color: newColor,
-            timestamp: new Date().toISOString(),
-            isPinned: false,
+    useEffect(() => {
+        const fetchNotes = async () => {
+            try {
+                const res = await apiFetch("/api/notes");
+                if (res.ok) {
+                    const data = await res.json();
+                    setNotes(data);
+                }
+            } catch (err) {
+                console.error("Failed to load notes:", err);
+            } finally {
+                setIsLoading(false);
+            }
         };
-        setNotes([newNote, ...notes]);
-        setIsComposing(false);
-        setNewText("");
-        setNewTag("Concept");
-        setNewColor("yellow");
+        fetchNotes();
+    }, []);
+
+    const saveNote = async () => {
+        if (!newText.trim()) return;
+
+        try {
+            const res = await apiFetch("/api/notes", {
+                method: "POST",
+                body: JSON.stringify({
+                    text: newText.trim(),
+                    tag: newTag,
+                    color: newColor,
+                    isPinned: false
+                })
+            });
+
+            if (res.ok) {
+                const newNote = await res.json();
+                setNotes([newNote, ...notes]);
+                setIsComposing(false);
+                setNewText("");
+                setNewTag("Concept");
+                setNewColor("yellow");
+            }
+        } catch (err) {
+            console.error("Failed to save note:", err);
+        }
     };
 
-    const deleteNote = (id: string) => {
-        setNotes(notes.filter((n) => n.id !== id));
+    const deleteNote = async (id: number) => {
+        try {
+            const res = await apiFetch(`/api/notes/${id}`, { method: "DELETE" });
+            if (res.ok) setNotes(notes.filter((n) => n.id !== id));
+        } catch (err) {
+            console.error("Failed to delete note:", err);
+        }
     };
 
-    const togglePin = (id: string) => {
-        setNotes(notes.map((n) => (n.id === id ? { ...n, isPinned: !n.isPinned } : n)));
+    const togglePin = async (id: number) => {
+        const note = notes.find((n) => n.id === id);
+        if (!note) return;
+
+        try {
+            const res = await apiFetch(`/api/notes/${id}`, {
+                method: "PUT",
+                body: JSON.stringify({ isPinned: !note.isPinned })
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setNotes(notes.map((n) => (n.id === id ? updated : n)));
+            }
+        } catch (err) {
+            console.error("Failed to update pin state:", err);
+        }
     };
 
     const filteredAndSortedNotes = useMemo(() => {
@@ -92,7 +115,7 @@ export function NotedownSection({ C, dark }: NotedownSectionProps) {
         // Pinned first, then by date descending (assuming newer is top, which matches state unshift)
         return filtered.sort((a, b) => {
             if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-            return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
     }, [notes, filterTag]);
 
@@ -201,7 +224,11 @@ export function NotedownSection({ C, dark }: NotedownSectionProps) {
                 </div>
             )}
 
-            {filteredAndSortedNotes.length === 0 ? (
+            {isLoading ? (
+                <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 rounded-full animate-spin border-4 border-t-transparent" style={{ borderColor: C.border, borderTopColor: C.accent }} />
+                </div>
+            ) : filteredAndSortedNotes.length === 0 ? (
                 <div className="text-center py-12 rounded-3xl" style={{ border: `1px dashed ${C.border}` }}>
                     <p className="text-sm" style={{ color: C.subtext }}>No notes found for this filter.</p>
                 </div>
