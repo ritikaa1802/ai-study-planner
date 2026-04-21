@@ -14,8 +14,8 @@ import dashboardRoutes from "./routes/dashboard.routes";
 import userRoutes from "./routes/user.routes";
 import activityRoutes from "./routes/activity.routes";
 import calendarRoutes from "./routes/calendar.routes";
-import analyticsRoutes from "./routes/analytics.routes";
 import sessionRoutes from "./routes/session.routes";
+import noteRoutes from "./routes/note.routes";
 import path from "path";
 
 import { errorHandler } from "./middleware/error.middleware";
@@ -101,6 +101,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/notes", noteRoutes);
 
 app.use(errorHandler);
 
