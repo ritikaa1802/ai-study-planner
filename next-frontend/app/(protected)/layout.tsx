@@ -18,6 +18,7 @@ const PATH_TO_PAGE: Record<string, PageKey> = {
   "/ai-planner": "AI Planner",
   "/resources": "Resources",
   "/study-circle": "Study Circle",
+  "/notedown": "Notedown",
   "/settings": "Settings",
 };
 
@@ -30,6 +31,7 @@ const PAGE_TO_PATH: Record<PageKey, string> = {
   "AI Planner": "/ai-planner",
   "Resources": "/resources",
   "Study Circle": "/study-circle",
+  "Notedown": "/notedown",
   "Settings": "/settings",
 };
 

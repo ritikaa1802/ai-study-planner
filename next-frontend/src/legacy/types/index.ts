@@ -95,4 +95,5 @@ export type PageKey =
   | "AI Planner"
   | "Resources"
   | "Study Circle"
+  | "Notedown"
   | "Settings";

@@ -13,6 +13,7 @@ import { Resources, StudyCircle, Settings } from "./pages/Settings";
 import { AuthPage } from "./pages/Login";
 import { ResetPasswordPage } from "./pages/ResetPassword";
 import { AIPlanner } from "./pages/AIPlanner";
+import { Notedown } from "./pages/Notedown";
 
 const PAGE_TO_PATH: Record<PageKey, string> = {
   "Dashboard": "/dashboard",
@@ -23,6 +24,7 @@ const PAGE_TO_PATH: Record<PageKey, string> = {
   "AI Planner": "/ai-planner",
   "Resources": "/resources",
   "Study Circle": "/study-circle",
+  "Notedown": "/notedown",
   "Settings": "/settings",
 };
 
@@ -36,6 +38,7 @@ const PATH_TO_PAGE: Record<string, PageKey> = {
   "/ai-planner": "AI Planner",
   "/resources": "Resources",
   "/study-circle": "Study Circle",
+  "/notedown": "Notedown",
   "/settings": "Settings",
 };
 
@@ -104,6 +107,7 @@ export default function App() {
       case "AI Planner": return <AIPlanner C={C} dark={dark} />;
       case "Resources": return <Resources C={C} />;
       case "Study Circle": return <StudyCircle C={C} />;
+      case "Notedown": return <Notedown C={C} dark={dark} />;
       case "Settings": return <Settings C={C} dark={dark} setDark={setDark} />;
       default: return <Dashboard C={C} />;
     }
