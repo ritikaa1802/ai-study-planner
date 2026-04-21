@@ -148,11 +148,13 @@ export const getGoals = async (ctx: ServerContext) => {
             id: true,
             title: true,
             type: true,
+            isImportant: true,
           },
         });
 
         goals = minimalGoals.map((goal) => ({
           ...goal,
+          isImportant: (goal as { isImportant?: boolean }).isImportant ?? false,
           tasks: [],
         }));
       }
