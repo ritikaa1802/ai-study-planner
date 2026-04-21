@@ -41,7 +41,7 @@ export const createGoal = async (ctx: ServerContext) => {
           type: true,
           isImportant: true,
         },
-      });
+      }) as { id: number; title: string; type: string; isImportant: boolean; };
     } catch (error) {
       // Fallback for databases that don't have optional/newer goal columns yet.
       console.warn("Goal create fallback: retrying without optional fields", error);
@@ -58,7 +58,7 @@ export const createGoal = async (ctx: ServerContext) => {
           type: true,
           isImportant: true,
         },
-      });
+      }) as { id: number; title: string; type: string; isImportant: boolean; };
     }
 
     return json(201, goal);

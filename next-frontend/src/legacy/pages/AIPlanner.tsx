@@ -3,6 +3,7 @@ import { Theme } from "../types";
 import { LoadingSkeleton } from "../components/ai-planner/LoadingSkeleton";
 import { Toast } from "../components/ai-planner/Toast";
 import { WeekCard } from "../components/ai-planner/WeekCard";
+import { NotedownSection } from "../components/ai-planner/NotedownSection";
 import { PlannerDay, PlannerResponse, PlannerTask, PlannerWeek, Priority } from "../components/ai-planner/types";
 import { apiFetch } from "../utils/api";
 
@@ -410,6 +411,8 @@ export function AIPlanner({ C, dark }: AIPlannerProps) {
             </div>
           </section>
         )}
+
+        <NotedownSection C={C} dark={dark} />
       </div>
 
       <Toast show={toast} message={toastMessage} />
