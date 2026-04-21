@@ -4,11 +4,12 @@ import { Prisma } from "@prisma/client"
 import { AppError } from "../utils/appError"
 import { catchAsync } from "../utils/catchAsync"
 import { updateGoalSchema } from "../validators/goal.validator"
+import { ensureGoalStatsRecord, getGoalLifetimeStats } from "../services/goalLifecycle.service"
 
 // CREATE GOAL
 export const createGoal = async (req: any, res: any) => {
   try {
-    const { title, type, studyCircleId } = req.body
+    const { title, type, studyCircleId, isImportant } = req.body
     const userId = req.userId   // ✅ FIXED
 
     const allowedTypes = [
@@ -27,10 +28,11 @@ export const createGoal = async (req: any, res: any) => {
       return res.status(400).json({ error: "Invalid goal type" })
     }
 
-    const goal = await prisma.goal.create({
+    const goal = await (prisma.goal.create as any)({
       data: {
         title: title.trim(),
         type,
+        isImportant: Boolean(isImportant),
         studyCircleId: studyCircleId ? Number(studyCircleId) : undefined,
         userId
       },
@@ -64,7 +66,10 @@ export const getGoals = async (req: any, res: any) => {
   try {
     const userId = req.userId   // ✅ FIXED
 
-    const goals = await prisma.goal.findMany({
+    await ensureGoalStatsRecord()
+    const stats = await getGoalLifetimeStats()
+
+    const goals = await (prisma.goal.findMany as any)({
       where: {
         userId
       },
@@ -73,7 +78,11 @@ export const getGoals = async (req: any, res: any) => {
       }
     })
 
-    res.json(goals)
+    res.json({
+      goals,
+      lifetimeGoalsCompleted: stats.lifetimeGoalsCompleted,
+      lifetimeGoalsMissed: stats.lifetimeGoalsMissed,
+    })
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: "Failed to fetch goals" })
@@ -98,7 +107,7 @@ export const updateGoal = async (req: any, res: any) => {
       return res.status(404).json({ error: "Goal not found" });
     }
 
-    const updatedGoal = await prisma.goal.update({
+    const updatedGoal = await (prisma.goal.update as any)({
       where: { id: Number(id) },
       data: { title, type }
     });
@@ -148,7 +157,7 @@ export const getGoalById = async (req: any, res: any) => {
     const { id } = req.params;
     const userId = req.userId;
 
-    const goal = await prisma.goal.findFirst({
+    const goal = await (prisma.goal.findFirst as any)({
       where: {
         id: Number(id),
         userId
@@ -165,3 +174,36 @@ export const getGoalById = async (req: any, res: any) => {
     res.status(500).json({ error: "Failed to fetch goal" });
   }
 };
+
+export const toggleGoalImportant = async (req: any, res: any) => {
+  try {
+    const { id } = req.params
+    const { isImportant } = req.body
+    const userId = req.userId
+
+    if (typeof isImportant !== "boolean") {
+      return res.status(400).json({ error: "isImportant must be a boolean" })
+    }
+
+    const goal = await (prisma.goal.findFirst as any)({
+      where: {
+        id: Number(id),
+        userId,
+      }
+    })
+
+    if (!goal) {
+      return res.status(404).json({ error: "Goal not found" })
+    }
+
+    const updatedGoal = await (prisma.goal.update as any)({
+      where: { id: Number(id) },
+      data: { isImportant }
+    })
+
+    return res.json(updatedGoal)
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: "Failed to update goal importance" })
+  }
+}

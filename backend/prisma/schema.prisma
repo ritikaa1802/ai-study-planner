@@ -65,8 +65,11 @@ model Goal {
   title         String
   type          String
   progress      Int          @default(0)
+  completed     Boolean      @default(false)
+  isImportant   Boolean      @default(false)
   userId        Int
   createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   studyCircleId Int?
   studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Goal_studyCircleId_fkey")
   user          User         @relation(fields: [userId], references: [id], map: "Goal_userId_fkey")
@@ -75,6 +78,16 @@ model Goal {
   @@index([studyCircleId], map: "Goal_studyCircleId_fkey")
   @@index([userId], map: "Goal_userId_fkey")
   @@map("goal")
+}
+
+model GoalStats {
+  id                     String   @id @default("global")
+  lifetimeGoalsCompleted Int      @default(0)
+  lifetimeGoalsMissed    Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("goalstats")
 }
 
 model Resource {

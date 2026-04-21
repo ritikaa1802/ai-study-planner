@@ -29,6 +29,7 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
     goals,
     error,
     addGoal,
+    toggleGoalImportant,
     toggleTask,
     addTask,
     deleteTask,
@@ -175,6 +176,23 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
                 <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: typeColor.bg, color: typeColor.color, whiteSpace: "nowrap" }}>{typeLabel}</span>
               </div>
               <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
+                <button
+                  onClick={() => toggleGoalImportant(goal.id, !goal.isImportant)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: goal.isImportant ? "#f59e0b" : C.muted,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    lineHeight: 1,
+                    padding: "0 2px",
+                  }}
+                  title={goal.isImportant ? "Marked important" : "Mark as important"}
+                  aria-label={goal.isImportant ? "Unmark important goal" : "Mark goal as important"}
+                >
+                  {goal.isImportant ? "★" : "☆"}
+                </button>
                 <button onClick={() => setExpandedId(isExpanded ? null : goal.id)} style={{ background: "none", border: "none", color: C.accent, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                   {isExpanded ? "Hide Tasks ▲" : "View Tasks ▼"}
                 </button>

@@ -17,9 +17,14 @@ export const recalculateGoalProgress = async (goalId: number) => {
       ? 0
       : Math.round((completedTasks / totalTasks) * 100)
 
+  const completed = progress >= 100
+
   await prisma.goal.update({
     where: { id: goalId },
-    data: { progress }
+    data: {
+      progress,
+      completed
+    }
   })
 }
 

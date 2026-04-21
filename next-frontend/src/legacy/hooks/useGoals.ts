@@ -44,6 +44,7 @@ export function useGoals() {
         id: goal.id,
         title: goal.title,
         type: goal.type,
+        isImportant: Boolean(goal.isImportant),
         tasks: goal.tasks.map((t: any) => ({
           id: t.id,                // must be backend id
           text: t.title,
@@ -92,12 +93,14 @@ export function useGoals() {
           id: newGoal.id,
           title: newGoal.title,
           type: newGoal.type,
+          isImportant: Boolean(newGoal.isImportant),
           tasks: [],
         }
         : {
           id: Date.now(),
           title,
           type,
+          isImportant: false,
           tasks: [],
         },
       ...g,
@@ -198,20 +201,6 @@ export function useGoals() {
         refreshUser();
       }
 
-      if (goal && !wasGoalCompleted) {
-        const nextTasks = goal.tasks.map((t) =>
-          t.id === taskId ? { ...t, done: updated.completed } : t
-        );
-
-        const nextProgress = nextTasks.length
-          ? Math.round((nextTasks.filter((t) => t.done).length / nextTasks.length) * 100)
-          : 0;
-
-        if (nextProgress === 100) {
-          setLifetimeGoalsCompleted((c) => c + 1);
-        }
-      }
-
       setGoals((gs) =>
         gs.map((g) =>
           g.id === goalId
@@ -268,9 +257,6 @@ export function useGoals() {
   }
 
   async function deleteGoal(goalId: number) {
-    const deletedGoal = goals.find((g) => g.id === goalId);
-    const wasCompleted = !!deletedGoal && getGoalProgress(deletedGoal) === 100;
-
     const res = await apiFetch(`/api/goals/${goalId}`, {
       method: "DELETE",
     });
@@ -288,9 +274,31 @@ export function useGoals() {
     }
 
     setGoals((gs) => gs.filter((g) => g.id !== goalId));
-    if (wasCompleted) {
-      setDeletedCompletedToday((c) => c + 1);
+  }
+
+  async function toggleGoalImportant(goalId: number, isImportant: boolean) {
+    setError(null);
+
+    const res = await apiFetch(`/api/goals/${goalId}/important`, {
+      method: "PATCH",
+      body: JSON.stringify({ isImportant }),
+    });
+
+    if (!res.ok) {
+      let message = "Failed to update goal importance";
+      try {
+        const payload = await res.json();
+        message = payload?.error || payload?.message || message;
+      } catch {
+        // Keep fallback message.
+      }
+      setError(message);
+      return;
     }
+
+    setGoals((gs) =>
+      gs.map((g) => (g.id === goalId ? { ...g, isImportant } : g))
+    );
   }
 
   const completed = goals.filter((g) => getGoalProgress(g) === 100).length + deletedCompletedToday;
@@ -307,6 +315,7 @@ export function useGoals() {
     error,
     addGoal,
     addTask,
+    toggleGoalImportant,
     toggleTask,
     deleteTask,
     deleteGoal,

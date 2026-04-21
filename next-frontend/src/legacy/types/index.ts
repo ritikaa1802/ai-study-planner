@@ -40,6 +40,7 @@ export interface Goal {
   id: number;
   title: string;
   type: GoalType;
+  isImportant?: boolean;
   tasks: Task[];
 }
 
