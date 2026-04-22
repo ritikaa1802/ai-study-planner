@@ -1,4 +1,5 @@
 import prisma from "../prisma"
+import { addUserNotification } from "../controllers/user.controller"
 
 export const recalculateGoalProgress = async (goalId: number) => {
   const totalTasks = await prisma.task.count({
@@ -26,6 +27,16 @@ export const recalculateGoalProgress = async (goalId: number) => {
       completed
     }
   })
+
+  // Notify user if goal is completed
+  if (completed) {
+    const goal = await prisma.goal.findUnique({ where: { id: goalId }, select: { userId: true, title: true } })
+    if (goal?.userId) {
+      await addUserNotification(goal.userId, {
+        text: `Goal "${goal.title}" completed! Congratulations!`,
+      })
+    }
+  }
 }
 
 export const logDailyActivity = async (userId: number) => {

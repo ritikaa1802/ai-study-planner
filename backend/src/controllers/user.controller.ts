@@ -1,3 +1,13 @@
+// Helper to add a notification to a user
+export async function addUserNotification(userId: number, notif: { text: string; time?: string; unread?: boolean }) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { notifs: true } });
+  const now = new Date();
+  const time = notif.time || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const newNotif = { id: Date.now(), text: notif.text, time, unread: notif.unread !== false };
+  const notifs = Array.isArray(user?.notifs) ? user!.notifs : [];
+  notifs.unshift(newNotif);
+  await prisma.user.update({ where: { id: userId }, data: { notifs } });
+}
 import { Request, Response } from "express";
 import prisma from "../prisma";
 import bcrypt from "bcrypt";

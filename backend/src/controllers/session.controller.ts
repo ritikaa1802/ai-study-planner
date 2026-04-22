@@ -1,3 +1,4 @@
+import { addUserNotification } from "./user.controller";
 import { Request, Response } from "express";
 import prisma from "../prisma";
 
@@ -30,6 +31,9 @@ export const createStudySession = async (req: Request, res: Response): Promise<v
       },
     });
 
+    await addUserNotification(userId, {
+      text: `Study session for "${subject}" (${normalizedDuration} min) logged!`,
+    });
     res.status(201).json(session);
   } catch (error) {
     console.error("CREATE SESSION ERROR:", error);

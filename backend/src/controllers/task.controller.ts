@@ -3,6 +3,7 @@ import prisma from "../prisma"
 import { AppError } from "../utils/appError"
 import { catchAsync } from "../utils/catchAsync"
 import { recalculateGoalProgress, logDailyActivity } from "../services/task.service"
+import { addUserNotification } from "./user.controller"
 import { createTaskSchema, createTasksBulkSchema, updateTaskSchema } from "../validators/task.validator"
 
 
@@ -143,6 +144,7 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
     throw new AppError("Task not found", 404)
   }
 
+
   const updatedTask = await prisma.task.update({
     where: { id: Number(id) },
     data: { completed }
@@ -152,6 +154,9 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
 
   if (completed === true) {
     await logDailyActivity(userId)
+    await addUserNotification(userId, {
+      text: `Task "${updatedTask.title}" completed! Great job!`,
+    })
   }
 
   console.log("Task updated successfully", updatedTask)

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Theme, Notification } from "../../types";
 import { ICONS } from "../../utils/constants";
 import { useAuthContext } from "../../context/AuthContext";
-import { resolveApiUrl } from "../../utils/api";
+import { apiFetch, resolveApiUrl } from "../../utils/api";
 
 function Ic({ d, size = 18, color = "currentColor", sw = 1.8 }: { d: string; size?: number; color?: string; sw?: number }) {
   return (
@@ -24,14 +24,29 @@ export function Navbar({ C, onMenuToggle, showMenuButton = false }: HeaderProps)
   const [notifs, setNotifs] = useState<Notification[]>([]);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
 
+  const normalizeNotifications = (raw: unknown): Notification[] => {
+    if (!Array.isArray(raw)) return [];
+
+    return raw
+      .map((item, index) => {
+        const value = item as Partial<Notification>;
+        if (typeof value.text !== "string" || !value.text.trim()) {
+          return null;
+        }
+
+        return {
+          id: typeof value.id === "number" ? value.id : index + 1,
+          text: value.text.trim(),
+          time: typeof value.time === "string" && value.time.trim() ? value.time : "Recently",
+          unread: Boolean(value.unread),
+        };
+      })
+      .filter((item): item is Notification => item !== null);
+  };
+
   useEffect(() => {
-    if (notifs.length === 0) {
-      setNotifs([
-        { id: 1, text: `You're on a ${user.streak}-day streak! Keep going!`, time: "Just now", unread: true },
-        { id: 2, text: "Welcome to your Study Planner dashboard.", time: "2h ago", unread: user.streak === 0 }
-      ]);
-    }
-  }, [user.streak, notifs.length]);
+    setNotifs(normalizeNotifications(user.notifs));
+  }, [user.notifs]);
 
   const unreadCount = notifs.filter((n) => n.unread).length;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
@@ -43,8 +58,18 @@ export function Navbar({ C, onMenuToggle, showMenuButton = false }: HeaderProps)
     setAvatarLoadError(false);
   }, [avatarSrc]);
 
-  const handleMarkAsRead = () => {
-    setNotifs(notifs.map(n => ({ ...n, unread: false })));
+  const handleMarkAsRead = async () => {
+    const updatedNotifs = notifs.map((n) => ({ ...n, unread: false }));
+    setNotifs(updatedNotifs);
+
+    try {
+      await apiFetch("/api/users/profile", {
+        method: "PUT",
+        body: JSON.stringify({ notifs: updatedNotifs }),
+      });
+    } catch (error) {
+      console.error("Failed to persist notification read state", error);
+    }
   };
 
   return (
@@ -81,6 +106,11 @@ export function Navbar({ C, onMenuToggle, showMenuButton = false }: HeaderProps)
         {notifOpen && (
           <div className="absolute right-2 top-[calc(100%+8px)] z-[100] w-[92vw] max-w-[300px] overflow-hidden sm:right-16" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
             <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid ${C.border}`, fontSize: 14, fontWeight: 700, color: C.text }}>Notifications</div>
+            {notifs.length === 0 && (
+              <div style={{ padding: "14px 16px", fontSize: 13, color: C.muted }}>
+                No notifications yet.
+              </div>
+            )}
             {notifs.map((n) => (
               <div key={n.id} style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10, alignItems: "flex-start", background: n.unread ? C.accentBg : "transparent" }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: n.unread ? C.accent : "transparent", marginTop: 5, flexShrink: 0 }} />
@@ -90,7 +120,9 @@ export function Navbar({ C, onMenuToggle, showMenuButton = false }: HeaderProps)
                 </div>
               </div>
             ))}
-            <div onClick={handleMarkAsRead} style={{ padding: "10px 16px", textAlign: "center", fontSize: 12, color: C.accent, cursor: "pointer", fontWeight: 600 }}>Mark all as read</div>
+            {notifs.length > 0 && (
+              <div onClick={handleMarkAsRead} style={{ padding: "10px 16px", textAlign: "center", fontSize: 12, color: C.accent, cursor: "pointer", fontWeight: 600 }}>Mark all as read</div>
+            )}
           </div>
         )}
 
