@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -194,6 +194,8 @@ model User {
   avatar                String?
   bio                   String?
   notifs                Json?
+  xp                    Int      @default(0)
+  level                 Int      @default(1)
   calendarEvents        CalendarEvent[]
   circleMessages        CircleMessage[]
   dailyActivities       DailyActivity[]
