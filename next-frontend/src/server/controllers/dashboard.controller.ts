@@ -1,8 +1,11 @@
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
+import { runDailyGoalReset } from "../services/goalLifecycle.service";
 
 export const getDashboardStats = async (ctx: ServerContext) => {
   const userId = ctx.userId as number;
+
+  await runDailyGoalReset();
 
   let lifetimeGoalsCompleted = 0;
   let lifetimeGoalsMissed = 0;

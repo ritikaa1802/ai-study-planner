@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { json, type ServerContext } from "../shared/http";
-import { getGoalStats } from "../services/goalLifecycle.service";
+import { getGoalStats, runDailyGoalReset } from "../services/goalLifecycle.service";
 
 export const createGoal = async (ctx: ServerContext) => {
   try {
@@ -77,6 +77,8 @@ export const createGoal = async (ctx: ServerContext) => {
 export const getGoals = async (ctx: ServerContext) => {
   try {
     const userId = ctx.userId as number;
+
+    await runDailyGoalReset();
 
     let goals: Array<{
       id: number;
