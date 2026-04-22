@@ -28,6 +28,9 @@ export const createStudySession = async (ctx: ServerContext) => {
       },
     });
 
+    const { logDailyActivity } = await import("../services/task.service");
+    await logDailyActivity(userId, 2);
+
     const stats = await getUserAchievementStats(userId);
     await checkAndUnlockAchievements(userId, stats);
 

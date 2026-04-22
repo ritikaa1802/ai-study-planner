@@ -195,7 +195,7 @@ export const updateTask = async (ctx: ServerContext) => {
       updatedTask = await prisma.$transaction(async (tx) => {
         const nextTask = await tx.task.update({
           where: { id: Number(id) },
-          data: { completed: true, completionCounted: true },
+          data: { completed: true, completionCounted: true, completedAt: new Date() },
         });
 
         await tx.user.update({
@@ -210,7 +210,10 @@ export const updateTask = async (ctx: ServerContext) => {
     } else {
       updatedTask = await prisma.task.update({
         where: { id: Number(id) },
-        data: { completed },
+        data: {
+          completed,
+          completedAt: completed === true ? new Date() : null
+        },
       });
     }
 

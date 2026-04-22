@@ -4,12 +4,12 @@ import { checkAndUnlockAchievements, getUserAchievementStats } from "./achieveme
 export const recalculateGoalProgress = async (goalId: number) => {
   let goalBefore:
     | {
-        id: number;
-        userId: number;
-        progress: number;
-        completedAt?: Date | null;
-        completionCounted?: boolean;
-      }
+      id: number;
+      userId: number;
+      progress: number;
+      completedAt?: Date | null;
+      completionCounted?: boolean;
+    }
     | null = null;
 
   try {
@@ -78,12 +78,13 @@ export const recalculateGoalProgress = async (goalId: number) => {
   }
 
   if (becameCompleted) {
+    await logDailyActivity(goalBefore.userId, 5);
     const stats = await getUserAchievementStats(goalBefore.userId);
     await checkAndUnlockAchievements(goalBefore.userId, stats);
   }
 };
 
-export const logDailyActivity = async (userId: number) => {
+export const logDailyActivity = async (userId: number, increment: number = 1) => {
   const now = new Date();
 
   const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
@@ -106,14 +107,14 @@ export const logDailyActivity = async (userId: number) => {
         },
       },
       data: {
-        count: existingActivity.count + 1,
+        count: existingActivity.count + increment,
       },
     });
   } else {
     await prisma.dailyActivity.create({
       data: {
         date: utcDate,
-        count: 1,
+        count: increment,
         userId,
       },
     });

@@ -37,20 +37,58 @@ export const getAnalytics = async (ctx: ServerContext) => {
       wk[day] += session.duration / 60;
     });
 
+    // Add focusMinutes from tasks completed in the last 7 days.
+    const completedTasksLast7Days = await prisma.task.findMany({
+      where: {
+        userId,
+        completed: true,
+        completedAt: { gte: sevenDaysAgo }
+      }
+    });
+
+    completedTasksLast7Days.forEach((task: any) => {
+      if (task.completedAt && task.focusMinutes) {
+        const day = new Date(task.completedAt).getDay();
+        wk[day] += task.focusMinutes / 60;
+      }
+    });
+
     const wkRounded = wk.map((hours: number) => Number(hours.toFixed(1)));
 
-    const subjectBreakdown = await prisma.userStudySession.groupBy({
+    // Subject breakdown (merged from sessions and tasks)
+    const subjectGroups = await prisma.userStudySession.groupBy({
       by: ["subject"],
       where: { userId },
       _sum: { duration: true },
-      orderBy: { _sum: { duration: "desc" } },
-      take: 8,
     });
 
-    const subj = subjectBreakdown.map((row: any) => ({
-      n: String(row.subject).substring(0, 10),
-      h: Number((((row._sum.duration ?? 0) as number) / 60).toFixed(1)),
-    }));
+    const subjectMap: Record<string, number> = {};
+    subjectGroups.forEach(row => {
+      const s = row.subject || "General";
+      subjectMap[s] = (subjectMap[s] || 0) + (row._sum.duration || 0);
+    });
+
+    const tasksWithGoals = await prisma.task.findMany({
+      where: {
+        userId,
+        completed: true,
+        focusMinutes: { not: null, gt: 0 }
+      },
+      include: { goal: { select: { title: true } } }
+    });
+
+    tasksWithGoals.forEach(task => {
+      const s = task.goal?.title || "General";
+      subjectMap[s] = (subjectMap[s] || 0) + (task.focusMinutes || 0);
+    });
+
+    const subj = Object.entries(subjectMap)
+      .map(([n, mins]) => ({
+        n: n.substring(0, 10),
+        h: Number((mins / 60).toFixed(1)),
+      }))
+      .sort((a, b) => b.h - a.h)
+      .slice(0, 8);
 
     if (subj.length === 0) {
       subj.push({ n: "General", h: 0 });
@@ -61,7 +99,13 @@ export const getAnalytics = async (ctx: ServerContext) => {
       _sum: { duration: true },
     });
 
-    const totalStudyHours = Number((((totalStudyAgg._sum.duration ?? 0) as number) / 60).toFixed(1));
+    const totalTaskStudyAgg = await prisma.task.aggregate({
+      where: { userId, completed: true },
+      _sum: { focusMinutes: true }
+    });
+
+    const totalStudyMinutes = Number(totalStudyAgg._sum.duration || 0) + Number(totalTaskStudyAgg._sum.focusMinutes || 0);
+    const totalStudyHours = Number((totalStudyMinutes / 60).toFixed(1));
     const weeklyStudyHours = Number(wkRounded.reduce((sum: number, h: number) => sum + h, 0).toFixed(1));
 
     const currentTasksDone = await prisma.task.count({
