@@ -16,6 +16,7 @@ import activityRoutes from "./routes/activity.routes";
 import calendarRoutes from "./routes/calendar.routes";
 import sessionRoutes from "./routes/session.routes";
 import noteRoutes from "./routes/note.routes";
+import analyticsRoutes from "./routes/analytics.routes";
 import path from "path";
 
 import { errorHandler } from "./middleware/error.middleware";

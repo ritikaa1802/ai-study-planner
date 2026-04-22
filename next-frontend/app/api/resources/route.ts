@@ -34,27 +34,41 @@ export async function POST(req: NextRequest) {
       return auth.response;
     }
 
-    const formData = await req.formData();
-    const title = String(formData.get("title") ?? "").trim();
-    const url = String(formData.get("url") ?? "").trim();
-    const description = String(formData.get("description") ?? "").trim();
-    const studyCircleId = String(formData.get("studyCircleId") ?? "").trim();
-
+    const contentType = req.headers.get("content-type") || "";
+    let title = "";
+    let url = "";
+    let description = "";
+    let studyCircleId = "";
     let fileInfo: { filename: string; mimetype?: string } | undefined;
-    const file = formData.get("file");
 
-    if (file instanceof File) {
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        return NextResponse.json({ error: "File too large. Maximum size is 100MB." }, { status: 400 });
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      title = String(formData.get("title") ?? "").trim();
+      url = String(formData.get("url") ?? "").trim();
+      description = String(formData.get("description") ?? "").trim();
+      studyCircleId = String(formData.get("studyCircleId") ?? "").trim();
+
+      const file = formData.get("file");
+      if (file instanceof File) {
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          return NextResponse.json({ error: "File too large. Maximum size is 100MB." }, { status: 400 });
+        }
+
+        const ext = path.extname(file.name || "") || ".bin";
+        const filename = `${Date.now()}-${randomUUID()}-${sanitizeFilename(path.basename(file.name || "resource", ext))}${ext}`;
+        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+
+        await mkdir(uploadsDir, { recursive: true });
+        await writeFile(path.join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()));
+        fileInfo = { filename, mimetype: file.type };
       }
-
-      const ext = path.extname(file.name || "") || ".bin";
-      const filename = `${Date.now()}-${randomUUID()}-${sanitizeFilename(path.basename(file.name || "resource", ext))}${ext}`;
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
-
-      await mkdir(uploadsDir, { recursive: true });
-      await writeFile(path.join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()));
-      fileInfo = { filename, mimetype: file.type };
+    } else {
+      // Handle application/json
+      const body = await req.json();
+      title = String(body.title ?? "").trim();
+      url = String(body.url ?? "").trim();
+      description = String(body.description ?? "").trim();
+      studyCircleId = String(body.studyCircleId ?? "").trim();
     }
 
     const result = await resourceController.createResource({
