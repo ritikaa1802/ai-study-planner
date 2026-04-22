@@ -152,11 +152,15 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
 
   await recalculateGoalProgress(task.goalId)
 
+
   if (completed === true) {
     await logDailyActivity(userId)
     await addUserNotification(userId, {
       text: `Task "${updatedTask.title}" completed! Great job!`,
     })
+    // Award XP for completing a task
+    const { addUserXP } = require("./user.controller")
+    await addUserXP(userId, 10)
   }
 
   console.log("Task updated successfully", updatedTask)

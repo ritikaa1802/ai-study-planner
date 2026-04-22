@@ -17,7 +17,7 @@ model CalendarEvent {
   userId Int
   user   User   @relation(fields: [userId], references: [id], map: "CalendarEvent_userId_fkey")
 
-  @@index([userId], map: "CalendarEvent_userId_fkey")
+  @@index([userId], map: "CalendarEvent_userId_idx")
   @@map("calendarevent")
 }
 
@@ -30,8 +30,8 @@ model CircleMessage {
   studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleMessage_circleId_fkey")
   sender      User        @relation(fields: [senderId], references: [id], map: "CircleMessage_senderId_fkey")
 
-  @@index([circleId], map: "CircleMessage_circleId_fkey")
-  @@index([senderId], map: "CircleMessage_senderId_fkey")
+  @@index([circleId], map: "CircleMessage_circleId_idx")
+  @@index([senderId], map: "CircleMessage_senderId_idx")
   @@map("circlemessage")
 }
 
@@ -44,7 +44,7 @@ model CircleSchedule {
   createdAt   DateTime    @default(now())
   studyCircle StudyCircle @relation(fields: [circleId], references: [id], map: "CircleSchedule_circleId_fkey")
 
-  @@index([circleId], map: "CircleSchedule_circleId_fkey")
+  @@index([circleId], map: "CircleSchedule_circleId_idx")
   @@map("circleschedule")
 }
 
@@ -56,7 +56,7 @@ model DailyActivity {
   user   User     @relation(fields: [userId], references: [id], map: "DailyActivity_userId_fkey")
 
   @@unique([date, userId], map: "DailyActivity_date_userId_key")
-  @@index([userId], map: "DailyActivity_userId_fkey")
+  @@index([userId], map: "DailyActivity_userId_idx")
   @@map("dailyactivity")
 }
 
@@ -75,8 +75,8 @@ model Goal {
   user          User         @relation(fields: [userId], references: [id], map: "Goal_userId_fkey")
   tasks         Task[]
 
-  @@index([studyCircleId], map: "Goal_studyCircleId_fkey")
-  @@index([userId], map: "Goal_userId_fkey")
+  @@index([studyCircleId], map: "Goal_studyCircleId_idx")
+  @@index([userId], map: "Goal_userId_idx")
   @@map("goal")
 }
 
@@ -103,8 +103,8 @@ model Resource {
   studyCircle   StudyCircle? @relation(fields: [studyCircleId], references: [id], map: "Resource_studyCircleId_fkey")
   uploader      User         @relation(fields: [uploaderId], references: [id], map: "Resource_uploaderId_fkey")
 
-  @@index([studyCircleId], map: "Resource_studyCircleId_fkey")
-  @@index([uploaderId], map: "Resource_uploaderId_fkey")
+  @@index([studyCircleId], map: "Resource_studyCircleId_idx")
+  @@index([uploaderId], map: "Resource_uploaderId_idx")
   @@map("resource")
 }
 
@@ -116,10 +116,10 @@ model SessionParticipant {
   lastPing     DateTime     @default(now())
   status       String       @default("ACTIVE")
   studySession StudySession @relation(fields: [sessionId], references: [id], map: "SessionParticipant_sessionId_fkey")
-  user         User         @relation(fields: [userId], references: [id], map: "SessionParticipant_userId_fkey")
+  user         User         @relation(fields: [userId], references: [id], map: "SessionParticipant_userId_fkey2")
 
   @@unique([sessionId, userId], map: "SessionParticipant_sessionId_userId_key")
-  @@index([userId], map: "SessionParticipant_userId_fkey")
+  @@index([userId], map: "SessionParticipant_userId_idx")
   @@map("sessionparticipant")
 }
 
@@ -145,10 +145,10 @@ model StudyCircleMembership {
   userId        Int
   studyCircleId Int
   studyCircle   StudyCircle @relation(fields: [studyCircleId], references: [id], map: "StudyCircleMembership_studyCircleId_fkey")
-  user          User        @relation(fields: [userId], references: [id], map: "StudyCircleMembership_userId_fkey")
+  user          User        @relation(fields: [userId], references: [id], map: "StudyCircleMembership_userId_fkey2")
 
   @@unique([userId, studyCircleId], map: "StudyCircleMembership_userId_studyCircleId_key")
-  @@index([studyCircleId], map: "StudyCircleMembership_studyCircleId_fkey")
+  @@index([studyCircleId], map: "StudyCircleMembership_studyCircleId_idx")
   @@map("studycirclemembership")
 }
 
@@ -161,7 +161,7 @@ model StudySession {
   participants SessionParticipant[]
   studyCircle  StudyCircle          @relation(fields: [circleId], references: [id], map: "StudySession_circleId_fkey")
 
-  @@index([circleId], map: "StudySession_circleId_fkey")
+  @@index([circleId], map: "StudySession_circleId_idx")
   @@map("studysession")
 }
 
@@ -174,10 +174,10 @@ model Task {
   userId    Int
   createdAt DateTime @default(now())
   goal      Goal     @relation(fields: [goalId], references: [id], map: "Task_goalId_fkey")
-  user      User     @relation(fields: [userId], references: [id], map: "Task_userId_fkey")
+  user      User     @relation(fields: [userId], references: [id], map: "Task_userId_fkey2")
 
-  @@index([goalId], map: "Task_goalId_fkey")
-  @@index([userId], map: "Task_userId_fkey")
+  @@index([goalId], map: "Task_goalId_idx")
+  @@index([userId], map: "Task_userId_idx")
   @@map("task")
 }
 
@@ -218,7 +218,7 @@ model UserStudySession {
   date     DateTime @default(now())
   user     User     @relation(fields: [userId], references: [id], map: "UserStudySession_userId_fkey")
 
-  @@index([userId], map: "UserStudySession_userId_fkey")
+  @@index([userId], map: "UserStudySession_userId_idx")
   @@index([date], map: "UserStudySession_date_idx")
   @@map("studysession_log")
 }
@@ -237,8 +237,8 @@ model Note {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], map: "Note_userId_fkey")
+  user      User     @relation(fields: [userId], references: [id], map: "Note_userId_fkey2")
 
-  @@index([userId], map: "Note_userId_fkey")
+  @@index([userId], map: "Note_userId_idx")
   @@map("note")
 }

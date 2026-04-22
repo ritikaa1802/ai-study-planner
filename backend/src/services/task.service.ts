@@ -28,13 +28,16 @@ export const recalculateGoalProgress = async (goalId: number) => {
     }
   })
 
-  // Notify user if goal is completed
+  // Notify user and award XP if goal is completed
   if (completed) {
     const goal = await prisma.goal.findUnique({ where: { id: goalId }, select: { userId: true, title: true } })
     if (goal?.userId) {
       await addUserNotification(goal.userId, {
         text: `Goal "${goal.title}" completed! Congratulations!`,
       })
+      // Award XP for completing a goal
+      const { addUserXP } = require("../controllers/user.controller")
+      await addUserXP(goal.userId, 50)
     }
   }
 }

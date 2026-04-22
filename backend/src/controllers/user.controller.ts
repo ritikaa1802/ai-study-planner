@@ -1,3 +1,20 @@
+// Helper to add XP and handle level up
+export async function addUserXP(userId: number, xpToAdd: number) {
+  let user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true, level: true } });
+  if (!user) return;
+  let { xp, level } = user;
+  xp += xpToAdd;
+  let leveledUp = false;
+  while (xp >= level * 100) {
+    xp -= level * 100;
+    level += 1;
+    leveledUp = true;
+  }
+  await prisma.user.update({ where: { id: userId }, data: { xp, level } });
+  if (leveledUp) {
+    await addUserNotification(userId, { text: `Level up! You are now Level ${level}! 🎉` });
+  }
+}
 // Helper to add a notification to a user
 export async function addUserNotification(userId: number, notif: { text: string; time?: string; unread?: boolean }) {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { notifs: true } });
@@ -87,7 +104,7 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
   try {
     const user = await prisma.user.findUnique({
       where: { id: (req as any).userId },
-      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true }
+      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true, xp: true, level: true }
     });
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -107,7 +124,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     const updatedUser = await prisma.user.update({
       where: { id: (req as any).userId },
       data: { name, bio, avatar, notifs },
-      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true }
+      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true, xp: true, level: true }
     });
 
     res.json({ user: updatedUser });
