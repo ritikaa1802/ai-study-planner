@@ -44,7 +44,7 @@ export const createGoal = async (req: any, res: any) => {
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2003") {
-        return res.status(401).json({ error: "Session expired. Please sign in again." })
+        return res.status(400).json({ error: "Failed to create goal: related record (User or Study Circle) not found." })
       }
 
       if (error.code === "P2021") {
