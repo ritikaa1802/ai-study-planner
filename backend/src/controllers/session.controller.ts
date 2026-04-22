@@ -35,8 +35,13 @@ export const createStudySession = async (req: Request, res: Response): Promise<v
       text: `Study session for "${subject}" (${normalizedDuration} min) logged!`,
     });
     // Award XP for study session (duration/5, min 1)
+    // Award XP for study session (duration/5, min 1)
     const { addUserXP } = require("./user.controller")
     await addUserXP(userId, Math.max(1, Math.floor(normalizedDuration / 5)))
+
+    const { logDailyActivity } = require("../services/task.service")
+    await logDailyActivity(userId, 2)
+
     res.status(201).json(session);
   } catch (error) {
     console.error("CREATE SESSION ERROR:", error);

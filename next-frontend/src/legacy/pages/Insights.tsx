@@ -274,14 +274,14 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
       <div className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-2 md:gap-5">
         <Card C={C} style={{ padding: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Weekly Study Hours</h3>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Study Hours</h3>
             <span style={{ background: "#fef3c7", color: "#b45309", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Last 7 days</span>
           </div>
           <AnimatedLineChart key={`l-${ck}`} data={wk} labels={lb} C={C} />
         </Card>
         <Card C={C} style={{ padding: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Tasks Completed</h3>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Daily Progress</h3>
             <span style={{ background: "#fef3c7", color: "#b45309", fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20 }}>Weekly</span>
           </div>
           <AnimatedBarChart key={`b-${ck}`} data={tk} labels={lb} C={C} />
@@ -335,18 +335,18 @@ export function Insights({ C, onNavigateToPomodoro }: InsightsProps) {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>1. Study Hours</div>
-            <div>Calculated from your Pomodoro sessions using actual tracked time.</div>
+            <div>Tracked from both Pomodoro sessions AND focus minutes set on your completed tasks.</div>
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>2. Daily & Weekly Stats</div>
-            <div>Grouped by session date.</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>2. Daily Progress</div>
+            <div>A unified activity score that counts task completions, goal completions, and study sessions.</div>
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 4 }}>3. Subject Breakdown</div>
-            <div>Based on selected subject before starting session.</div>
+            <div>Based on subjects selected before starting Pomodoro sessions.</div>
           </div>
           <div style={{ border: `1px solid ${C.amber}`, background: `${C.amber}22`, borderRadius: 10, padding: "10px 12px", color: C.text }}>
-            If you don't use the timer, analytics may not reflect real study time.
+            Everything you do—with or without the timer—is now tracked to give you a complete view of your progress.
           </div>
           {!hasSessions && (
             <div style={{ fontSize: 12, color: C.muted }}>

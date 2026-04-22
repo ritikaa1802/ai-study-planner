@@ -175,12 +175,14 @@ model Task {
   goalId            Int
   userId            Int
   createdAt         DateTime @default(now())
+  completedAt       DateTime?
   completionCounted Boolean  @default(false)
   goal              Goal     @relation(fields: [goalId], references: [id], map: "Task_goalId_fkey")
   user              User     @relation(fields: [userId], references: [id], map: "Task_userId_fkey2")
 
   @@index([goalId])
   @@index([userId])
+  @@index([completedAt])
   @@map("task")
 }
 

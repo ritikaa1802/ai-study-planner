@@ -40,6 +40,22 @@ export const getAnalytics = async (req: Request, res: Response) => {
             wk[day] += session.duration / 60;
         });
 
+        // Add focusMinutes from tasks completed in the last 7 days.
+        const completedTasksLast7Days = await prisma.task.findMany({
+            where: {
+                userId,
+                completed: true,
+                completedAt: { gte: sevenDaysAgo }
+            }
+        });
+
+        completedTasksLast7Days.forEach((task: any) => {
+            if (task.completedAt && task.focusMinutes) {
+                const day = new Date(task.completedAt).getDay();
+                wk[day] += task.focusMinutes / 60;
+            }
+        });
+
         const wkRounded = wk.map((hours: number) => Number(hours.toFixed(1)));
 
         // Subject breakdown from real session durations.
@@ -65,7 +81,14 @@ export const getAnalytics = async (req: Request, res: Response) => {
             _sum: { duration: true }
         });
 
-        const totalStudyHours = Number((((totalStudyAgg._sum.duration ?? 0) as number) / 60).toFixed(1));
+        const totalTaskStudyAgg = await prisma.task.aggregate({
+            where: { userId, completed: true },
+            _sum: { focusMinutes: true }
+        });
+
+        const totalStudyMinutes = (Number(totalStudyAgg._sum.duration) || 0) + (Number(totalTaskStudyAgg._sum.focusMinutes) || 0);
+
+        const totalStudyHours = Number((totalStudyMinutes / 60).toFixed(1));
         const weeklyStudyHours = Number(wkRounded.reduce((sum: number, h: number) => sum + h, 0).toFixed(1));
 
         // Totals

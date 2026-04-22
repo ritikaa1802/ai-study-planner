@@ -18,18 +18,18 @@ export const recalculateGoalProgress = async (goalId: number) => {
       ? 0
       : Math.round((completedTasks / totalTasks) * 100)
 
-  const completed = progress >= 100
+  const isCompleted = progress >= 100
 
   await prisma.goal.update({
     where: { id: goalId },
     data: {
       progress,
-      completed
+      completedAt: isCompleted ? (new Date()) : null
     }
   })
 
   // Notify user and award XP if goal is completed
-  if (completed) {
+  if (isCompleted) {
     const goal = await prisma.goal.findUnique({ where: { id: goalId }, select: { userId: true, title: true } })
     if (goal?.userId) {
       await addUserNotification(goal.userId, {
@@ -38,11 +38,14 @@ export const recalculateGoalProgress = async (goalId: number) => {
       // Award XP for completing a goal
       const { addUserXP } = require("../controllers/user.controller")
       await addUserXP(goal.userId, 50)
+
+      // Log significant daily activity for completing a goal
+      await logDailyActivity(goal.userId, 5)
     }
   }
 }
 
-export const logDailyActivity = async (userId: number) => {
+export const logDailyActivity = async (userId: number, increment: number = 1) => {
   const now = new Date()
 
   const utcDate = new Date(Date.UTC(
@@ -69,14 +72,14 @@ export const logDailyActivity = async (userId: number) => {
         }
       },
       data: {
-        count: existingActivity.count + 1
+        count: existingActivity.count + increment
       }
     })
   } else {
     await prisma.dailyActivity.create({
       data: {
         date: utcDate,
-        count: 1,
+        count: increment,
         userId
       }
     })

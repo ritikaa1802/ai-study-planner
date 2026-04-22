@@ -147,7 +147,10 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
 
   const updatedTask = await prisma.task.update({
     where: { id: Number(id) },
-    data: { completed }
+    data: {
+      completed,
+      completedAt: completed ? new Date() : null
+    }
   })
 
   await recalculateGoalProgress(task.goalId)
