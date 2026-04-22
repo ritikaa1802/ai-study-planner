@@ -2,6 +2,17 @@ import prisma from "../prisma"
 
 const GOAL_STATS_ID = "global"
 
+type RunDailyGoalLifecycleOptions = {
+  userId?: number
+  now?: Date
+}
+
+type GoalLifecycleSnapshot = {
+  id: number
+  completed: boolean
+  progress: number
+}
+
 export const ensureGoalStatsRecord = async () => {
   return (prisma as any).goalStats.upsert({
     where: { id: GOAL_STATS_ID },
@@ -18,11 +29,19 @@ export const getGoalLifetimeStats = async () => {
   }
 }
 
-export const runDailyGoalLifecycle = async () => {
+export const runDailyGoalLifecycle = async (options: RunDailyGoalLifecycleOptions = {}) => {
   await ensureGoalStatsRecord()
 
-  const goalsToReset = await (prisma.goal.findMany as any)({
-    where: { isImportant: false },
+  const now = options.now ?? new Date()
+  const startOfToday = new Date(now)
+  startOfToday.setHours(0, 0, 0, 0)
+
+  const goalsToReset: GoalLifecycleSnapshot[] = await (prisma.goal.findMany as any)({
+    where: {
+      isImportant: false,
+      createdAt: { lt: startOfToday },
+      ...(typeof options.userId === "number" ? { userId: options.userId } : {}),
+    },
     select: {
       id: true,
       completed: true,

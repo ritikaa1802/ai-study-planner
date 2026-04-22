@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client"
 import { AppError } from "../utils/appError"
 import { catchAsync } from "../utils/catchAsync"
 import { updateGoalSchema } from "../validators/goal.validator"
-import { ensureGoalStatsRecord, getGoalLifetimeStats } from "../services/goalLifecycle.service"
+import { ensureGoalStatsRecord, getGoalLifetimeStats, runDailyGoalLifecycle } from "../services/goalLifecycle.service"
 
 // CREATE GOAL
 export const createGoal = async (req: any, res: any) => {
@@ -66,6 +66,7 @@ export const getGoals = async (req: any, res: any) => {
   try {
     const userId = req.userId   // ✅ FIXED
 
+    await runDailyGoalLifecycle({ userId })
     await ensureGoalStatsRecord()
     const stats = await getGoalLifetimeStats()
 

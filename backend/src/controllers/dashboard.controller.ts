@@ -1,10 +1,13 @@
 import { Request, Response } from "express"
 import prisma from "../prisma"
 import { catchAsync } from "../utils/catchAsync"
+import { runDailyGoalLifecycle } from "../services/goalLifecycle.service"
 
 export const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
 
   const userId = (req as any).userId
+
+  await runDailyGoalLifecycle({ userId })
 
   const totalGoals = await prisma.goal.count({
     where: { userId }
