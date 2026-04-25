@@ -110,7 +110,15 @@ export async function apiFetch(
         continue;
       }
 
-      if (res.status === 401 && !skipAuthRedirect) {
+      if (res.status === 401) {
+        // If we are in Focus Mode or the request explicitly asked to skip redirect,
+        // we just return the response and let the caller handle it.
+        const isFocusMode = typeof window !== "undefined" && window.location.pathname.includes("/pomodoro");
+        if (skipAuthRedirect || isFocusMode) {
+          console.warn(`401 Unauthorized for ${endpoint} (skipped redirect)`);
+          return res;
+        }
+
         localStorage.removeItem("token");
         localStorage.removeItem(API_BASE_STORAGE_KEY);
         window.location.reload();
