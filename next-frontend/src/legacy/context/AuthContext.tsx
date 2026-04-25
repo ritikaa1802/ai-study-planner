@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           id: profileData.id || 0,
           name: profileData.name || "Student",
           email: profileData.email || "",
-          level: 1, // gamification default
-          xp: 0,    // gamification default
+          level: profileData.level ?? 1,
+          xp: profileData.xp ?? 0,
           streak: activityData.currentStreak || 0,
           avatar: avatarValue,
           bio: profileData.bio,

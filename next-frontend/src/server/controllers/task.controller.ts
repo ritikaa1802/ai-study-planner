@@ -221,6 +221,13 @@ export const updateTask = async (ctx: ServerContext) => {
 
     if (completed === true) {
       await logDailyActivity(userId);
+      
+      const { addUserXP, addUserNotification } = await import("./user.controller");
+      await addUserXP(userId, 10);
+      await addUserNotification(userId, {
+        text: `Task "${updatedTask.title}" completed! Great job!`,
+      });
+
       const stats = await getUserAchievementStats(userId);
       await checkAndUnlockAchievements(userId, stats);
     }

@@ -3,6 +3,35 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { json, type ServerContext } from "../shared/http";
 
+// Helper to add XP and handle level up
+export async function addUserXP(userId: number, xpToAdd: number) {
+  let user = await prisma.user.findUnique({ where: { id: userId }, select: { xp: true, level: true } });
+  if (!user) return;
+  let { xp, level } = user;
+  xp += xpToAdd;
+  let leveledUp = false;
+  while (xp >= level * 100) {
+    xp -= level * 100;
+    level += 1;
+    leveledUp = true;
+  }
+  await prisma.user.update({ where: { id: userId }, data: { xp, level } });
+  if (leveledUp) {
+    await addUserNotification(userId, { text: `Level up! You are now Level ${level}! 🎉` });
+  }
+}
+
+// Helper to add a notification to a user
+export async function addUserNotification(userId: number, notif: { text: string; time?: string; unread?: boolean }) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { notifs: true } });
+  const now = new Date();
+  const time = notif.time || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const newNotif = { id: Date.now(), text: notif.text, time, unread: notif.unread !== false };
+  const notifs = Array.isArray(user?.notifs) ? user!.notifs : [];
+  notifs.unshift(newNotif);
+  await prisma.user.update({ where: { id: userId }, data: { notifs } });
+}
+
 export const createUser = async (ctx: ServerContext) => {
   try {
     const { name, email, password } = ctx.body ?? {};
@@ -72,7 +101,7 @@ export const getProfile = async (ctx: ServerContext) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: ctx.userId },
-      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true },
+      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true, xp: true, level: true },
     });
     if (!user) {
       return json(404, { error: "User not found" });
@@ -91,7 +120,7 @@ export const updateProfile = async (ctx: ServerContext) => {
     const updatedUser = await prisma.user.update({
       where: { id: ctx.userId },
       data: { name, bio, avatar, notifs },
-      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true },
+      select: { id: true, name: true, email: true, bio: true, avatar: true, notifs: true, xp: true, level: true },
     });
 
     return json(200, { user: updatedUser });
