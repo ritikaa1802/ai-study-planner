@@ -199,6 +199,8 @@ model User {
   avatar                     String?
   bio                        String?
   notifs                     Json?
+  xp                         Int                     @default(0)
+  level                      Int                     @default(1)
   deletedCompletedGoalsCount Int                     @default(0)
   deletedCompletedGoalsDate  DateTime?
   lifetimeGoalsCompleted     Int                     @default(0)

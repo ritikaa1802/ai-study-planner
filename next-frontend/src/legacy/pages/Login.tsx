@@ -325,7 +325,7 @@ function Login({ onSwitch, onLogin }: { onSwitch: (v: View) => void; onLogin?: (
       }
 
       // ✅ Save JWT token
-      localStorage.setItem("token", (data as any).accessToken);
+      localStorage.setItem("token", (data as any).accessToken || (data as any).token);
 
       setLoading(false);
       onLogin?.();
