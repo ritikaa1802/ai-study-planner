@@ -19,7 +19,7 @@ export function useGoals() {
   async function fetchGoals() {
     try {
       setError(null);
-      const res = await apiFetch("/api/goals");
+      const res = await apiFetch("/api/goals", { skipAuthRedirect: true });
 
       if (!res.ok) {
         let message = "Failed to load goals";

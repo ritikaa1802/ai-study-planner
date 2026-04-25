@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = async () => {
     try {
       const [profileRes, activityRes] = await Promise.all([
-        apiFetch(`/api/users/profile`),
-        apiFetch(`/api/activity`)
+        apiFetch(`/api/users/profile`, { skipAuthRedirect: true }),
+        apiFetch(`/api/activity`, { skipAuthRedirect: true })
       ]);
 
       const profileData = await profileRes.json();

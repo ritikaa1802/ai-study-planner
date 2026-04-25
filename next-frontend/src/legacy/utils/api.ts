@@ -103,7 +103,7 @@ export async function apiFetch(
 
       lastResponse = res;
 
-      const isRetryableStatus = res.status === 401 || res.status === 404 || res.status >= 500;
+      const isRetryableStatus = res.status === 404 || res.status >= 500;
       const hasFallback = i < bases.length - 1;
 
       if (isRetryableStatus && hasFallback) {
@@ -113,8 +113,16 @@ export async function apiFetch(
       if (res.status === 401) {
         // If we are in Focus Mode or the request explicitly asked to skip redirect,
         // we just return the response and let the caller handle it.
-        const isFocusMode = typeof window !== "undefined" && window.location.pathname.includes("/pomodoro");
-        if (skipAuthRedirect || isFocusMode) {
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+        const path = currentPath.toLowerCase();
+        const isBypassPath = path.includes("pomodoro") || 
+                           path.includes("goals") || 
+                           path.includes("dashboard") || 
+                           path.includes("analytics") || 
+                           path.includes("focus") ||
+                           path.includes("settings");
+        
+        if (skipAuthRedirect || isBypassPath) {
           console.warn(`401 Unauthorized for ${endpoint} (skipped redirect)`);
           return res;
         }
