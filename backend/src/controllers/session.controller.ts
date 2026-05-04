@@ -31,9 +31,7 @@ export const createStudySession = async (req: Request, res: Response): Promise<v
       },
     });
 
-    await addUserNotification(userId, {
-      text: `Study session for "${subject}" (${normalizedDuration} min) logged!`,
-    });
+      // No notification for every study session; only notify valuable content
     // Award XP for study session (duration/5, min 1)
     // Award XP for study session (duration/5, min 1)
     const { addUserXP } = require("./user.controller")
