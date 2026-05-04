@@ -59,7 +59,26 @@ export async function notifyMissedTasks() {
 }
 
 // Main job runner
+// Notify users of new study circle events created in the last 3 hours
+export async function notifyStudyCircleEvents() {
+  const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  // Find all new circle schedules created in the last 3 hours
+  const newEvents = await prisma.circleSchedule.findMany({
+    where: { createdAt: { gte: threeHoursAgo } },
+    include: { studyCircle: { include: { members: { include: { user: true } } } } },
+  });
+  for (const event of newEvents) {
+    const circleName = event.studyCircle?.name || "a study circle";
+    for (const member of event.studyCircle?.members || []) {
+      await addUserNotification(member.userId, {
+        text: `New event in '${circleName}': '${event.title}' from ${event.startTime.toLocaleString()} to ${event.endTime.toLocaleString()}`,
+      });
+    }
+  }
+}
+
 export async function runNotificationJobs() {
   await notifyCalendarEvents();
   await notifyMissedTasks();
+  await notifyStudyCircleEvents();
 }
