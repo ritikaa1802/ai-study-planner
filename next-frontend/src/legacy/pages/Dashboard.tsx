@@ -4,7 +4,7 @@ import { Card } from "../components/ui/Card";
 import { Heatmap } from "../components/dashboard/Heatmap";
 import { InsightCard } from "../components/dashboard/InsightCard";
 import { XPBar } from "../components/dashboard/XPBar";
-import { ProductivityGarden } from "../components/dashboard/ProductivityGarden";
+import { ProductivityGarden } from "../../components/dashboard/ProductivityGarden";
 import { getGreeting, getSarcasticThought } from "../utils/helpers";
 import { ICONS } from "../utils/constants";
 import { useAuthContext } from "../context/AuthContext";
