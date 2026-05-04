@@ -4,6 +4,7 @@ import { Card } from "../components/ui/Card";
 import { Heatmap } from "../components/dashboard/Heatmap";
 import { InsightCard } from "../components/dashboard/InsightCard";
 import { XPBar } from "../components/dashboard/XPBar";
+import { ProductivityGarden } from "../components/dashboard/ProductivityGarden";
 import { getGreeting, getSarcasticThought } from "../utils/helpers";
 import { ICONS } from "../utils/constants";
 import { useAuthContext } from "../context/AuthContext";
@@ -29,6 +30,10 @@ export function Dashboard({ C }: DashboardProps) {
   const { user } = useAuthContext();
   const [activeSection, setActiveSection] = useState("overview");
   const scrollRef = useRef<HTMLDivElement>(null);
+  // TODO: Replace with real data from backend or context
+  const completed = 7; // Example: 7 tasks completed this week
+  const missed = 2;    // Example: 2 tasks missed this week
+  const streak = user.streak || 0;
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(`dash-${id}`);
@@ -109,6 +114,9 @@ export function Dashboard({ C }: DashboardProps) {
             </div>
           </Card>
         </div>
+
+        {/* Productivity Garden */}
+        <ProductivityGarden completed={completed} missed={missed} streak={streak} />
 
 
       </div>
