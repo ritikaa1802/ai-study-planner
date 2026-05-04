@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Theme } from "../../legacy/types";
 import { Card } from "../../legacy/components/ui/Card";
 import { useAnalytics } from "../../legacy/hooks/useAnalytics";
@@ -25,10 +26,44 @@ const STATE_META: Record<GardenState, { label: string; emoji: string; color: str
   fresh:     { label: "Just Planted",  emoji: "🌰", color: "#78909C", desc: "Complete your first tasks to start growing your garden!" },
 };
 
-/** 7 × 7 = 49 dot grid. Each dot represents one task (proportionally scaled). */
+// Animated SVGs for different plant states
+const PlantSVGs = {
+  blooming: (
+    <motion.svg width="120" height="120" viewBox="0 0 120 120" initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+      <ellipse cx="60" cy="110" rx="30" ry="10" fill="#8BC34A" />
+      <motion.rect x="55" y="60" width="10" height="40" rx="5" fill="#795548" initial={{ y: 80 }} animate={{ y: 60 }} transition={{ delay: 0.2 }} />
+      <motion.circle cx="60" cy="60" r="22" fill="#FFEB3B" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }} />
+      <motion.circle cx="60" cy="60" r="12" fill="#FFC107" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.6, type: "spring" }} />
+      <motion.ellipse cx="60" cy="40" rx="8" ry="16" fill="#E91E63" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} />
+    </motion.svg>
+  ),
+  healthy: (
+    <motion.svg width="120" height="120" viewBox="0 0 120 120" initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+      <ellipse cx="60" cy="110" rx="30" ry="10" fill="#8BC34A" />
+      <motion.rect x="55" y="70" width="10" height="30" rx="5" fill="#795548" initial={{ y: 90 }} animate={{ y: 70 }} transition={{ delay: 0.2 }} />
+      <motion.ellipse cx="60" cy="60" rx="18" ry="28" fill="#4CAF50" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }} />
+    </motion.svg>
+  ),
+  wilting: (
+    <motion.svg width="120" height="120" viewBox="0 0 120 120" initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+      <ellipse cx="60" cy="110" rx="30" ry="10" fill="#BDBDBD" />
+      <motion.rect x="55" y="80" width="10" height="20" rx="5" fill="#A1887F" initial={{ y: 100 }} animate={{ y: 80 }} transition={{ delay: 0.2 }} />
+      <motion.ellipse cx="60" cy="90" rx="14" ry="8" fill="#8D6E63" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }} />
+      <motion.ellipse cx="60" cy="70" rx="10" ry="4" fill="#A5D6A7" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} />
+    </motion.svg>
+  ),
+  fresh: (
+    <motion.svg width="120" height="120" viewBox="0 0 120 120" initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+      <ellipse cx="60" cy="110" rx="30" ry="10" fill="#8BC34A" opacity="0.5" />
+      <motion.ellipse cx="60" cy="105" rx="8" ry="5" fill="#795548" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }} />
+    </motion.svg>
+  )
+};
+
+/** 10 × 10 = 100 dot grid to make boxes smaller. Each dot represents a task (proportionally scaled). */
 function GardenGrid({ completed, missed, C }: { completed: number; missed: number; C: Theme }) {
   const total = completed + missed;
-  const GRID = 49;
+  const GRID = 100;
 
   const completedDots = total === 0 ? 0 : Math.round((completed / total) * GRID);
   const missedDots    = total === 0 ? 0 : Math.min(GRID - completedDots, Math.round((missed / total) * GRID));
@@ -40,14 +75,14 @@ function GardenGrid({ completed, missed, C }: { completed: number; missed: numbe
   });
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5, margin: "18px 0 14px" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 3, margin: "18px 0 14px" }}>
       {cells.map((type, i) => (
         <div
           key={i}
           title={type === "done" ? "Completed" : type === "missed" ? "Missed" : ""}
           style={{
             aspectRatio: "1 / 1",
-            borderRadius: 5,
+            borderRadius: 3,
             background:
               type === "done"   ? C.green :
               type === "missed" ? `${C.red}88` :
@@ -74,7 +109,7 @@ export function ProductivityGarden({ C, streak }: ProductivityGardenProps) {
   return (
     <Card C={C} style={{ padding: "20px 22px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
@@ -88,7 +123,7 @@ export function ProductivityGarden({ C, streak }: ProductivityGardenProps) {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: C.text }}>Productivity Garden</h3>
-            <p style={{ margin: 0, fontSize: 11, color: C.muted }}>Each dot represents one task</p>
+            <p style={{ margin: 0, fontSize: 11, color: C.muted }}>Nurture your tasks</p>
           </div>
         </div>
 
@@ -107,27 +142,41 @@ export function ProductivityGarden({ C, streak }: ProductivityGardenProps) {
         </span>
       </div>
 
-      {/* Dot grid */}
+      {/* Visual Plant and Grid container */}
       {loading ? (
-        <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13 }}>
+        <div style={{ height: 180, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 13 }}>
           Loading…
         </div>
       ) : (
-        <GardenGrid completed={completed} missed={missed} C={C} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          
+          {/* Animated Tree/Plant Visual */}
+          <div style={{ marginBottom: 4, marginTop: 8 }}>
+            <AnimatePresence mode="wait">
+              {PlantSVGs[state as keyof typeof PlantSVGs]}
+            </AnimatePresence>
+          </div>
+          
+          {/* Dot grid - scaled down 10x10 */}
+          <div style={{ width: "100%", maxWidth: 300 }}>
+            <GardenGrid completed={completed} missed={missed} C={C} />
+          </div>
+
+        </div>
       )}
 
       {/* Legend */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 14, marginBottom: 14, flexWrap: "wrap", justifyContent: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <div style={{ width: 10, height: 10, borderRadius: 3, background: C.green }} />
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: C.green }} />
           <span style={{ fontSize: 11, color: C.muted }}>Completed</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <div style={{ width: 10, height: 10, borderRadius: 3, background: `${C.red}88` }} />
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: `${C.red}88` }} />
           <span style={{ fontSize: 11, color: C.muted }}>Missed</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <div style={{ width: 10, height: 10, borderRadius: 3, background: C.border }} />
+          <div style={{ width: 8, height: 8, borderRadius: 2, background: C.border }} />
           <span style={{ fontSize: 11, color: C.muted }}>Empty</span>
         </div>
       </div>
@@ -160,7 +209,7 @@ export function ProductivityGarden({ C, streak }: ProductivityGardenProps) {
       </div>
 
       {/* Motivational message */}
-      <p style={{ margin: 0, fontSize: 12, color: meta.color, fontWeight: 600 }}>
+      <p style={{ margin: 0, fontSize: 12, color: meta.color, fontWeight: 600, textAlign: "center" }}>
         {meta.emoji} {meta.desc}
       </p>
     </Card>
