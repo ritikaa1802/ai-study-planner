@@ -22,17 +22,17 @@ interface DashboardProps {
 }
 
 const TABS = [
-  { id: "overview", label: "Overview" },
+  { id: "overview",    label: "Overview" },
   { id: "consistency", label: "Consistency" },
+  { id: "garden",      label: "Garden 🌿" },
 ];
+
+const SECTIONS = ["overview", "consistency", "garden"];
 
 export function Dashboard({ C }: DashboardProps) {
   const { user } = useAuthContext();
   const [activeSection, setActiveSection] = useState("overview");
   const scrollRef = useRef<HTMLDivElement>(null);
-  // TODO: Replace with real data from backend or context
-  const completed = 7; // Example: 7 tasks completed this week
-  const missed = 2;    // Example: 2 tasks missed this week
   const streak = user.streak || 0;
 
   const scrollTo = (id: string) => {
@@ -47,11 +47,10 @@ export function Dashboard({ C }: DashboardProps) {
     const container = scrollRef.current;
     if (!container) return;
     const onScroll = () => {
-      const sections = ["overview", "consistency"];
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const el = document.getElementById(`dash-${sections[i]}`);
+      for (let i = SECTIONS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(`dash-${SECTIONS[i]}`);
         if (el && container.scrollTop >= el.offsetTop - 80) {
-          setActiveSection(sections[i]);
+          setActiveSection(SECTIONS[i]);
           break;
         }
       }
@@ -116,9 +115,13 @@ export function Dashboard({ C }: DashboardProps) {
         </div>
 
         {/* Productivity Garden */}
-        <ProductivityGarden completed={completed} missed={missed} streak={streak} />
-
-
+        <div id="dash-garden" style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <div style={{ width: 3, height: 16, borderRadius: 999, background: C.green }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Productivity Garden</span>
+          </div>
+          <ProductivityGarden C={C} streak={streak} />
+        </div>
       </div>
     </div>
   );
