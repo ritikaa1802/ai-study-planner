@@ -23,7 +23,6 @@ interface DashboardProps {
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "consistency", label: "Consistency" },
-  { id: "insights", label: "Insights" },
 ];
 
 export function Dashboard({ C }: DashboardProps) {
@@ -43,7 +42,7 @@ export function Dashboard({ C }: DashboardProps) {
     const container = scrollRef.current;
     if (!container) return;
     const onScroll = () => {
-      const sections = ["overview", "consistency", "insights"];
+      const sections = ["overview", "consistency"];
       for (let i = sections.length - 1; i >= 0; i--) {
         const el = document.getElementById(`dash-${sections[i]}`);
         if (el && container.scrollTop >= el.offsetTop - 80) {
@@ -111,16 +110,7 @@ export function Dashboard({ C }: DashboardProps) {
           </Card>
         </div>
 
-        {/* Insights */}
-        <div id="dash-insights">
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <div style={{ width: 3, height: 16, borderRadius: 999, background: C.accent }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Insights</span>
-          </div>
-          <Card C={C}>
-            <InsightCard C={C} />
-          </Card>
-        </div>
+
       </div>
     </div>
   );
