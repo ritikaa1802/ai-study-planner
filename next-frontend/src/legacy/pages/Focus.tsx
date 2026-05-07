@@ -46,21 +46,6 @@ export function Focus({ C }: FocusProps) {
   const activeSubjectRef = useRef("General");
   const activeTaskRef = useRef<FocusTaskContext | null>(null);
 
-  const completeLinkedTask = useCallback(async () => {
-    const linkedTask = activeTaskRef.current;
-    if (!linkedTask?.taskId) return;
-
-    try {
-      await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ completed: true }),
-        skipAuthRedirect: true,
-      });
-    } catch (error) {
-      console.error("Failed to mark linked task complete", error);
-    }
-  }, []);
-
   const saveStudySession = useCallback(async (sessionSubject: string, durationMinutes: number) => {
     setIsSavingSession(true);
     try {
@@ -102,8 +87,28 @@ export function Focus({ C }: FocusProps) {
     if (mode === "focus") {
       setSessions((s) => s + 1);
       setCompletedMinutesToday((m) => m + activeFocusMinutesRef.current);
-      void saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
-      void completeLinkedTask();
+      
+      // Save session and complete linked task
+      (async () => {
+        try {
+          await saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
+          const linkedTask = activeTaskRef.current;
+          if (linkedTask?.taskId) {
+            const res = await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
+              method: "PATCH",
+              body: JSON.stringify({ completed: true }),
+            });
+            if (!res.ok) {
+              console.error("Failed to mark task complete:", res.status, res.statusText);
+            } else {
+              console.log("Task marked complete successfully");
+            }
+          }
+        } catch (error) {
+          console.error("Error completing focus session:", error);
+        }
+      })();
+      
       setShowDoneEarly(false);
       setTime(selectedFocusMinutes * 60);
       activeTaskRef.current = null;
@@ -195,14 +200,29 @@ export function Focus({ C }: FocusProps) {
     setSessions((s) => s + 1);
     setCompletedMinutesToday((m) => m + durationMinutes);
 
-    await saveStudySession(activeSubjectRef.current, durationMinutes);
-    await completeLinkedTask();
+    try {
+      await saveStudySession(activeSubjectRef.current, durationMinutes);
+      const linkedTask = activeTaskRef.current;
+      if (linkedTask?.taskId) {
+        const res = await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ completed: true }),
+        });
+        if (!res.ok) {
+          console.error("Failed to mark task complete:", res.status, res.statusText);
+        } else {
+          console.log("Task marked complete successfully");
+        }
+      }
+    } catch (error) {
+      console.error("Error finishing early:", error);
+    }
 
     setShowDoneEarly(false);
     setTime(selectedFocusMinutes * 60);
     activeTaskRef.current = null;
     localStorage.removeItem(TASK_CONTEXT_KEY);
-  }, [running, mode, time, selectedFocusMinutes, saveStudySession, completeLinkedTask]);
+  }, [running, mode, time, selectedFocusMinutes, saveStudySession]);
 
   const switchMode = (m: "focus" | "break") => {
     setMode(m);
