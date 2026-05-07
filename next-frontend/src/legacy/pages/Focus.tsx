@@ -81,14 +81,19 @@ export function Focus({ C }: FocusProps) {
 
   useEffect(() => {
     if (running) {
+      const startTime = Date.now();
+      const initialTime = time;
+      
       ref.current = setInterval(() => {
-        setTime((t) => Math.max(t - 1, 0));
-      }, 1000);
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const newTime = Math.max(initialTime - elapsed, 0);
+        setTime(newTime);
+      }, 100);
     } else if (ref.current) {
       clearInterval(ref.current);
     }
     return () => { if (ref.current) clearInterval(ref.current); };
-  }, [running]);
+  }, [running, time]);
 
   useEffect(() => {
     if (!running || time !== 0) return;
