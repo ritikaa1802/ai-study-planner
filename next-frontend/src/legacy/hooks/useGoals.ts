@@ -14,6 +14,15 @@ export function useGoals() {
 
   useEffect(() => {
     fetchGoals();
+
+    // Listen for task completion events from Focus mode
+    const handleTaskCompleted = (event: any) => {
+      console.log("Task completed event received, refreshing goals", event.detail);
+      fetchGoals();
+    };
+
+    window.addEventListener("taskCompleted", handleTaskCompleted);
+    return () => window.removeEventListener("taskCompleted", handleTaskCompleted);
   }, []);
 
   async function fetchGoals() {

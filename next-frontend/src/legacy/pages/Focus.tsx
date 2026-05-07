@@ -88,8 +88,7 @@ export function Focus({ C }: FocusProps) {
       setSessions((s) => s + 1);
       setCompletedMinutesToday((m) => m + activeFocusMinutesRef.current);
       
-      // Save session and complete linked task
-      (async () => {
+    (async () => {
         try {
           await saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
           const linkedTask = activeTaskRef.current;
@@ -102,6 +101,8 @@ export function Focus({ C }: FocusProps) {
               console.error("Failed to mark task complete:", res.status, res.statusText);
             } else {
               console.log("Task marked complete successfully");
+              // Broadcast task completion so Goals can refresh
+              window.dispatchEvent(new CustomEvent("taskCompleted", { detail: { taskId: linkedTask.taskId, goalId: linkedTask.goalId } }));
             }
           }
         } catch (error) {
@@ -212,6 +213,8 @@ export function Focus({ C }: FocusProps) {
           console.error("Failed to mark task complete:", res.status, res.statusText);
         } else {
           console.log("Task marked complete successfully");
+          // Broadcast task completion so Goals can refresh
+          window.dispatchEvent(new CustomEvent("taskCompleted", { detail: { taskId: linkedTask.taskId, goalId: linkedTask.goalId } }));
         }
       }
     } catch (error) {
