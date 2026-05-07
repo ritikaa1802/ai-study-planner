@@ -31,11 +31,8 @@ export const createStudySession = async (ctx: ServerContext) => {
     const { logDailyActivity } = await import("../services/task.service");
     await logDailyActivity(userId, 2);
 
-    const { addUserXP, addUserNotification } = await import("./user.controller");
+    const { addUserXP } = await import("./user.controller");
     await addUserXP(userId, Math.max(1, Math.floor(normalizedDuration / 5)));
-    await addUserNotification(userId, {
-      text: `Study session for "${subject.trim()}" (${normalizedDuration} min) logged!`,
-    });
 
     const stats = await getUserAchievementStats(userId);
     await checkAndUnlockAchievements(userId, stats);
