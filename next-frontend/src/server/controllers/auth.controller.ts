@@ -103,6 +103,12 @@ export const login = async (ctx: ServerContext) => {
       return json(400, { error: "Invalid credentials" });
     }
 
+    // Verify JWT_SECRET is loaded
+    if (!process.env.JWT_SECRET) {
+      console.error("CRITICAL: JWT_SECRET environment variable is not set!");
+      return json(500, { error: "Server configuration error - JWT_SECRET not found" });
+    }
+
     const accessToken = generateAccessToken(user.id);
 
     let refreshToken: string | null = null;
@@ -114,6 +120,14 @@ export const login = async (ctx: ServerContext) => {
       });
     } catch (tokenError) {
       console.error("REFRESH TOKEN ERROR:", tokenError);
+    }
+
+    // Verify token can be decoded immediately
+    try {
+      jwt.verify(accessToken, process.env.JWT_SECRET);
+    } catch (verifyError) {
+      console.error("Token verification failed immediately after generation:", verifyError);
+      return json(500, { error: "Token generation error" });
     }
 
     return json(200, {
