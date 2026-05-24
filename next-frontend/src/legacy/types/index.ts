@@ -42,6 +42,7 @@ export interface Goal {
   type: GoalType;
   isImportant?: boolean;
   tasks: Task[];
+  completedAt?: string | null;
 }
 
 export type GoalType =

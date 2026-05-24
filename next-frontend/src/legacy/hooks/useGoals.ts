@@ -52,6 +52,7 @@ export function useGoals() {
         title: goal.title,
         type: goal.type,
         isImportant: Boolean(goal.isImportant),
+        completedAt: goal.completedAt ?? null,
         tasks: goal.tasks.map((t: any) => ({
           id: t.id,                // must be backend id
           text: t.title,
@@ -100,6 +101,7 @@ export function useGoals() {
           title: newGoal.title,
           type: newGoal.type,
           isImportant: Boolean(newGoal.isImportant),
+          completedAt: newGoal.completedAt ?? null,
           tasks: [],
         }
         : {
@@ -107,6 +109,7 @@ export function useGoals() {
           title,
           type,
           isImportant: false,
+          completedAt: null,
           tasks: [],
         },
       ...g,

@@ -203,9 +203,17 @@ export function Goals({ C, onNavigateToPomodoro }: GoalsProps) {
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: C.muted, marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: C.muted, marginBottom: 6, alignItems: "center" }}>
               <span>Progress — {goal.tasks.filter((t) => t.done).length}/{goal.tasks.length} tasks</span>
-              <span style={{ fontWeight: 600, color: pct === 100 ? C.green : C.text }}>{pct}%</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontWeight: 600, color: pct === 100 ? C.green : C.text }}>{pct}%</span>
+                {goal.completedAt && (
+                  <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 10, background: C.green + "22", color: C.green, display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap" }}>
+                    <Ic d={ICONS.check} size={14} color={C.green} sw={2.5} />
+                    Completed
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ height: 7, borderRadius: 999, background: C.border, overflow: "hidden", marginBottom: isExpanded ? 16 : 0 }}>
               <div style={{ height: "100%", width: `${pct}%`, background: pct === 100 ? C.green : C.accentBar, borderRadius: 999, transition: "width 0.4s ease" }} />
