@@ -80,6 +80,39 @@ export function Focus({ C }: FocusProps) {
     return () => { if (ref.current) clearInterval(ref.current); };
   }, [running, time]);
 
+  const markTaskCompleteWithRetry = useCallback(async (linkedTask: FocusTaskContext | null, maxRetries: number = 3) => {
+    if (!linkedTask?.taskId) return;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const res = await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ completed: true }),
+        });
+        
+        if (res.ok) {
+          console.log(`✓ Task ${linkedTask.taskId} marked complete (attempt ${attempt}/${maxRetries})`);
+          // Broadcast task completion so Goals can refresh
+          window.dispatchEvent(new CustomEvent("taskCompleted", { detail: { taskId: linkedTask.taskId, goalId: linkedTask.goalId } }));
+          return true;
+        } else {
+          console.warn(`Attempt ${attempt}/${maxRetries} failed:`, res.status, res.statusText);
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+          }
+        }
+      } catch (error) {
+        console.error(`Attempt ${attempt}/${maxRetries} error:`, error);
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+        }
+      }
+    }
+    
+    console.error(`✗ Failed to mark task ${linkedTask.taskId} complete after ${maxRetries} attempts`);
+    return false;
+  }, []);
+
   useEffect(() => {
     if (!running || time !== 0) return;
 
@@ -88,22 +121,22 @@ export function Focus({ C }: FocusProps) {
       setSessions((s) => s + 1);
       setCompletedMinutesToday((m) => m + activeFocusMinutesRef.current);
       
-    (async () => {
+      // Capture task reference BEFORE any async operations
+      const linkedTask = activeTaskRef.current;
+      const subject = activeSubjectRef.current;
+      const focusMinutes = activeFocusMinutesRef.current;
+      
+      (async () => {
         try {
-          await saveStudySession(activeSubjectRef.current, activeFocusMinutesRef.current);
-          const linkedTask = activeTaskRef.current;
+          // Save study session first
+          await saveStudySession(subject, focusMinutes);
+          console.log(`Study session saved: ${subject} (${focusMinutes}min)`);
+          
+          // Then mark task complete with retry logic
           if (linkedTask?.taskId) {
-            const res = await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
-              method: "PATCH",
-              body: JSON.stringify({ completed: true }),
-            });
-            if (!res.ok) {
-              console.error("Failed to mark task complete:", res.status, res.statusText);
-            } else {
-              console.log("Task marked complete successfully");
-              // Broadcast task completion so Goals can refresh
-              window.dispatchEvent(new CustomEvent("taskCompleted", { detail: { taskId: linkedTask.taskId, goalId: linkedTask.goalId } }));
-            }
+            await markTaskCompleteWithRetry(linkedTask);
+          } else {
+            console.log("No linked task to mark complete");
           }
         } catch (error) {
           console.error("Error completing focus session:", error);
@@ -118,7 +151,7 @@ export function Focus({ C }: FocusProps) {
     }
 
     setTime(selectedBreakMinutes * 60);
-  }, [time, running, mode, selectedFocusMinutes, selectedBreakMinutes, saveStudySession]);
+  }, [time, running, mode, selectedFocusMinutes, selectedBreakMinutes, saveStudySession, markTaskCompleteWithRetry]);
 
   useEffect(() => {
     const persistPartialSession = () => {
@@ -201,21 +234,18 @@ export function Focus({ C }: FocusProps) {
     setSessions((s) => s + 1);
     setCompletedMinutesToday((m) => m + durationMinutes);
 
+    // Capture task reference BEFORE any async operations
+    const linkedTask = activeTaskRef.current;
+    const subject = activeSubjectRef.current;
+
     try {
-      await saveStudySession(activeSubjectRef.current, durationMinutes);
-      const linkedTask = activeTaskRef.current;
+      await saveStudySession(subject, durationMinutes);
+      console.log(`Study session saved early: ${subject} (${durationMinutes}min)`);
+      
       if (linkedTask?.taskId) {
-        const res = await apiFetch(`/api/tasks/${linkedTask.taskId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ completed: true }),
-        });
-        if (!res.ok) {
-          console.error("Failed to mark task complete:", res.status, res.statusText);
-        } else {
-          console.log("Task marked complete successfully");
-          // Broadcast task completion so Goals can refresh
-          window.dispatchEvent(new CustomEvent("taskCompleted", { detail: { taskId: linkedTask.taskId, goalId: linkedTask.goalId } }));
-        }
+        await markTaskCompleteWithRetry(linkedTask);
+      } else {
+        console.log("No linked task to mark complete");
       }
     } catch (error) {
       console.error("Error finishing early:", error);
@@ -225,7 +255,7 @@ export function Focus({ C }: FocusProps) {
     setTime(selectedFocusMinutes * 60);
     activeTaskRef.current = null;
     localStorage.removeItem(TASK_CONTEXT_KEY);
-  }, [running, mode, time, selectedFocusMinutes, saveStudySession]);
+  }, [running, mode, time, selectedFocusMinutes, saveStudySession, markTaskCompleteWithRetry]);
 
   const switchMode = (m: "focus" | "break") => {
     setMode(m);

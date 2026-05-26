@@ -17,5 +17,8 @@ export const createTasksBulkSchema = z.object({
 })
 
 export const updateTaskSchema = z.object({
-  completed: z.boolean()
+  completed: z.boolean().describe("Mark task as complete or incomplete")
 })
+
+// Validation helper for task IDs
+export const taskIdSchema = z.number().int().positive("Invalid task ID")

@@ -130,7 +130,7 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params
   const userId = (req as any).userId
 
-  console.log("Updating task", id, "to completed:", completed, "for user", userId)
+  console.log("🔄 Updating task", id, "to completed:", completed, "for user", userId)
 
   const task = await prisma.task.findFirst({
     where: {
@@ -140,10 +140,13 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
   })
 
   if (!task) {
-    console.log("Task not found")
+    console.log("❌ Task not found:", id, "for user:", userId)
     throw new AppError("Task not found", 404)
   }
 
+  // Track if task was already completed to avoid duplicate notifications
+  const wasAlreadyCompleted = task.completed
+  const isNewCompletion = !wasAlreadyCompleted && completed === true
 
   const updatedTask = await prisma.task.update({
     where: { id: Number(id) },
@@ -155,18 +158,26 @@ export const updateTask = catchAsync(async (req: Request, res: Response) => {
 
   await recalculateGoalProgress(task.goalId)
 
-
-  if (completed === true) {
+  // Only trigger notifications and XP if this is a NEW completion
+  if (isNewCompletion) {
+    console.log("✅ Task", id, "newly completed. Triggering notifications and XP award.")
+    
     await logDailyActivity(userId)
     await addUserNotification(userId, {
       text: `Task "${updatedTask.title}" completed! Great job!`,
     })
+    
     // Award XP for completing a task
     const { addUserXP } = require("./user.controller")
-    await addUserXP(userId, 10)
+    const xpAwarded = await addUserXP(userId, 10)
+    console.log("🎯 Awarded", xpAwarded || 10, "XP to user", userId)
+  } else if (wasAlreadyCompleted && completed === false) {
+    console.log("↩️ Task", id, "marked as incomplete")
+  } else {
+    console.log("ℹ️ Task", id, "already completed, no new rewards")
   }
 
-  console.log("Task updated successfully", updatedTask)
+  console.log("✨ Task updated successfully", updatedTask)
 
   res.json(updatedTask)
 })

@@ -17,6 +17,7 @@ import calendarRoutes from "./routes/calendar.routes";
 import sessionRoutes from "./routes/session.routes";
 import noteRoutes from "./routes/note.routes";
 import analyticsRoutes from "./routes/analytics.routes";
+import debugRoutes from "./routes/debug.routes";
 import path from "path";
 
 import { errorHandler } from "./middleware/error.middleware";
@@ -103,6 +104,7 @@ app.use("/api/calendar", calendarRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/debug", debugRoutes);
 
 app.use(errorHandler);
 
