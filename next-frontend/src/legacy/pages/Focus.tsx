@@ -78,7 +78,7 @@ export function Focus({ C }: FocusProps) {
       clearInterval(ref.current);
     }
     return () => { if (ref.current) clearInterval(ref.current); };
-  }, [running, time]);
+  }, [running]);
 
   const markTaskCompleteWithRetry = useCallback(async (linkedTask: FocusTaskContext | null, maxRetries: number = 3) => {
     if (!linkedTask?.taskId) return;
