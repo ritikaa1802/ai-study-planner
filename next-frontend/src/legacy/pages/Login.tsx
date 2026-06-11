@@ -627,23 +627,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
           ))}
         </div>
 
-        {/* Social proof */}
-        <div style={{ marginTop: 52, display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ display: "flex" }}>
-            {["#7b7ec8", "#5c6380", "#8f94cc", "#3c4090"].map((c, i) => (
-              <div key={i} style={{ width: 30, height: 30, borderRadius: "50%", background: c, border: "2px solid #f4f5fb", marginLeft: i === 0 ? 0 : -8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff", fontWeight: 700 }}>
-                {["R", "A", "M", "S"][i]}
-              </div>
-            ))}
-          </div>
-          <div>
-            <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} width={12} height={12} viewBox="0 0 24 24" fill="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
-              ))}
-            </div>
-            </div>
-        </div>
+
       </div>
 
       {/* ── Right panel — form ── */}
