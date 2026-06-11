@@ -612,7 +612,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
         </p>
 
         {/* Feature pills */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           {[
             { icon: I.spark, text: "AI study plans tailored to your schedule" },
             { icon: I.check, text: "Track goals and tasks with visual progress" },
