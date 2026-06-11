@@ -607,7 +607,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
           Learn smarter,<br />
           <span style={{ background: "linear-gradient(135deg, #7b7ec8, #5c6380)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>not harder.</span>
         </h1>
-        <p style={{ margin: "0 0 48px", fontSize: 16, color: "#9298b0", lineHeight: 1.7, maxWidth: 340 }}>
+        <p style={{ margin: "0 0 24px", fontSize: 16, color: "#9298b0", lineHeight: 1.7, maxWidth: 340 }}>
           AI-powered study planning, goal tracking, and focus tools — all in one place.
         </p>
 
